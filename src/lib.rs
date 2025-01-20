@@ -1,3 +1,4 @@
+mod euclid;
 pub mod ring;
 mod polynomial;
 
