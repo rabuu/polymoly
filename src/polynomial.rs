@@ -1,11 +1,11 @@
 use std::fmt::Display;
 use std::{fmt, ops};
 
-use crate::structures::{CommutativeRing, Field};
+use crate::structures::{Field, Ring};
 
-pub struct Polynomial<R: CommutativeRing>(Vec<R::T>);
+pub struct Poly<R: Ring>(Vec<R::T>);
 
-impl<R: CommutativeRing> Polynomial<R> {
+impl<R: Ring> Poly<R> {
     pub fn new(elems: impl Into<Vec<R::T>>) -> Self {
         let elems = elems.into().into_iter().map(R::id).collect();
         Self(elems)
@@ -93,8 +93,8 @@ impl<R: CommutativeRing> Polynomial<R> {
     }
 }
 
-impl<F: Field> Polynomial<F> {
-    pub fn polynomial_division(self, rhs: Polynomial<F>) -> Option<(Polynomial<F>, Polynomial<F>)>
+impl<F: Field> Poly<F> {
+    pub fn polynomial_division(self, rhs: Poly<F>) -> Option<(Poly<F>, Poly<F>)>
     where
         F::T: Clone + PartialEq,
     {
@@ -102,7 +102,7 @@ impl<F: Field> Polynomial<F> {
             return None;
         }
 
-        let mut q = Polynomial::<F>::zeros(self.0.len());
+        let mut q = Poly::<F>::zeros(self.0.len());
         let mut r = self;
         let d = rhs.deg().expect("rhs is not zero");
 
@@ -115,7 +115,7 @@ impl<F: Field> Polynomial<F> {
 
             let deg = r_deg - d;
             let quotient = F::div(r.lc(), rhs.lc()).expect("rhs is not zero");
-            let t = Polynomial::single(quotient, deg);
+            let t = Poly::single(quotient, deg);
             q += t.clone();
             r -= t * rhs.clone();
         }
@@ -124,14 +124,14 @@ impl<F: Field> Polynomial<F> {
     }
 }
 
-impl<R> ops::Add<Polynomial<R>> for Polynomial<R>
+impl<R> ops::Add<Poly<R>> for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: Clone + PartialEq,
 {
-    type Output = Polynomial<R>;
+    type Output = Poly<R>;
 
-    fn add(self, rhs: Polynomial<R>) -> Self::Output {
+    fn add(self, rhs: Poly<R>) -> Self::Output {
         let (longer, shorter) = if self.0.len() > rhs.0.len() {
             (self, rhs)
         } else {
@@ -149,12 +149,12 @@ where
     }
 }
 
-impl<R> ops::AddAssign<Polynomial<R>> for Polynomial<R>
+impl<R> ops::AddAssign<Poly<R>> for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: Clone + PartialEq,
 {
-    fn add_assign(&mut self, rhs: Polynomial<R>) {
+    fn add_assign(&mut self, rhs: Poly<R>) {
         self.fill_with_zeros(rhs.0.len());
         for (i, elem) in rhs.0.into_iter().enumerate() {
             self.add_elem_unsafe(elem, i);
@@ -163,11 +163,11 @@ where
     }
 }
 
-impl<R> ops::Neg for Polynomial<R>
+impl<R> ops::Neg for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
 {
-    type Output = Polynomial<R>;
+    type Output = Poly<R>;
 
     fn neg(self) -> Self::Output {
         let mut out = Self::with_capacity(self.0.len());
@@ -178,14 +178,14 @@ where
     }
 }
 
-impl<R> ops::Sub<Polynomial<R>> for Polynomial<R>
+impl<R> ops::Sub<Poly<R>> for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: Clone + PartialEq,
 {
-    type Output = Polynomial<R>;
+    type Output = Poly<R>;
 
-    fn sub(self, rhs: Polynomial<R>) -> Self::Output {
+    fn sub(self, rhs: Poly<R>) -> Self::Output {
         let (longer, shorter) = if self.0.len() > rhs.0.len() {
             (self, rhs)
         } else {
@@ -203,12 +203,12 @@ where
     }
 }
 
-impl<R> ops::SubAssign<Polynomial<R>> for Polynomial<R>
+impl<R> ops::SubAssign<Poly<R>> for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: Clone + PartialEq,
 {
-    fn sub_assign(&mut self, rhs: Polynomial<R>) {
+    fn sub_assign(&mut self, rhs: Poly<R>) {
         self.fill_with_zeros(rhs.0.len());
         for (i, elem) in rhs.0.into_iter().enumerate() {
             self.add_elem_unsafe(R::neg(elem), i);
@@ -217,14 +217,14 @@ where
     }
 }
 
-impl<R> ops::Mul<Polynomial<R>> for Polynomial<R>
+impl<R> ops::Mul<Poly<R>> for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: Clone + PartialEq,
 {
-    type Output = Polynomial<R>;
+    type Output = Poly<R>;
 
-    fn mul(self, rhs: Polynomial<R>) -> Self::Output {
+    fn mul(self, rhs: Poly<R>) -> Self::Output {
         let n = self.deg().unwrap_or(0);
         let m = rhs.deg().unwrap_or(0);
         let mut out = Self::zeros(n + m + 1);
@@ -240,29 +240,29 @@ where
     }
 }
 
-impl<R> ops::MulAssign<Polynomial<R>> for Polynomial<R>
+impl<R> ops::MulAssign<Poly<R>> for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: Clone + PartialEq,
 {
-    fn mul_assign(&mut self, rhs: Polynomial<R>) {
+    fn mul_assign(&mut self, rhs: Poly<R>) {
         let product = self.clone() * rhs;
         *self = product;
     }
 }
 
-impl<R> Default for Polynomial<R>
+impl<R> Default for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
 {
     fn default() -> Self {
         Self(Vec::new())
     }
 }
 
-impl<R> Clone for Polynomial<R>
+impl<R> Clone for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: Clone,
 {
     fn clone(&self) -> Self {
@@ -270,9 +270,9 @@ where
     }
 }
 
-impl<R> PartialEq for Polynomial<R>
+impl<R> PartialEq for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
@@ -280,9 +280,9 @@ where
     }
 }
 
-impl<R> fmt::Debug for Polynomial<R>
+impl<R> fmt::Debug for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: fmt::Display + PartialEq,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -311,9 +311,9 @@ where
     }
 }
 
-impl<R> fmt::Display for Polynomial<R>
+impl<R> fmt::Display for Poly<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: Display + PartialEq,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

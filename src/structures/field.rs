@@ -1,9 +1,9 @@
 use crate::euclid::extended_euclidean;
 
-use super::CommutativeRing;
+use super::Ring;
 use super::{ZMod, R};
 
-pub trait Field: CommutativeRing {
+pub trait Field: Ring {
     fn inv(elem: Self::T) -> Option<Self::T>;
 
     fn div(lhs: Self::T, rhs: Self::T) -> Option<Self::T> {

@@ -1,7 +1,8 @@
-use crate::Polynomial;
+use crate::Poly;
 
 use super::{PolyRing, ZMod, R, Z};
 
+/// A commutative ring
 pub trait Ring {
     type T;
 
@@ -20,8 +21,6 @@ pub trait Ring {
         elem
     }
 }
-
-pub trait CommutativeRing: Ring {}
 
 impl Ring for R {
     type T = f64;
@@ -102,17 +101,17 @@ impl<const N: usize> Ring for ZMod<N> {
 
 impl<R> Ring for PolyRing<R>
 where
-    R: CommutativeRing,
+    R: Ring,
     R::T: Clone + PartialEq,
 {
-    type T = Polynomial<R>;
+    type T = Poly<R>;
 
     fn zero() -> Self::T {
-        Polynomial::default()
+        Poly::default()
     }
 
     fn one() -> Self::T {
-        Polynomial::constant(R::one())
+        Poly::constant(R::one())
     }
 
     fn add(lhs: Self::T, rhs: Self::T) -> Self::T {
@@ -126,15 +125,4 @@ where
     fn mul(lhs: Self::T, rhs: Self::T) -> Self::T {
         lhs * rhs
     }
-}
-
-impl CommutativeRing for R {}
-impl CommutativeRing for Z {}
-impl<const N: usize> CommutativeRing for ZMod<N> {}
-
-impl<R> CommutativeRing for PolyRing<R>
-where
-    R: CommutativeRing,
-    R::T: Clone + PartialEq,
-{
 }
