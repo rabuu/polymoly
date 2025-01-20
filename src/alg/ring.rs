@@ -1,3 +1,5 @@
+use super::{R, Z, ZMod};
+
 pub trait Ring {
     type T;
 
@@ -18,9 +20,6 @@ pub trait Ring {
 }
 
 pub trait CommutativeRing: Ring {}
-pub trait Field: CommutativeRing {}
-
-pub struct R;
 
 impl Ring for R {
     type T = f64;
@@ -41,11 +40,6 @@ impl Ring for R {
     }
 }
 
-impl CommutativeRing for R {}
-impl Field for R {}
-
-pub struct Z;
-
 impl Ring for Z {
     type T = isize;
 
@@ -64,10 +58,6 @@ impl Ring for Z {
         lhs * rhs
     }
 }
-
-impl CommutativeRing for Z {}
-
-pub struct ZMod<const N: usize>;
 
 impl<const N: usize> Ring for ZMod<N> {
     type T = usize;
@@ -93,4 +83,6 @@ impl<const N: usize> Ring for ZMod<N> {
     }
 }
 
+impl CommutativeRing for R {}
+impl CommutativeRing for Z {}
 impl<const N: usize> CommutativeRing for ZMod<N> {}

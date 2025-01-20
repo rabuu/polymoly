@@ -1,5 +1,5 @@
 use polymoly::Polynomial;
-use polymoly::ring::ZMod;
+use polymoly::alg::{Field, ZMod};
 
 fn main() {
     let mut p: Polynomial<ZMod<5>> = Polynomial::with_capacity(3);
@@ -10,5 +10,5 @@ fn main() {
     q.add_elem(1, 1);
     q.add_elem(2, 0);
 
-    println!("{:?}", p * q);
+    println!("{:?}", ZMod::<43>::inv(16));
 }

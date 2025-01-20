@@ -1,5 +1,5 @@
+pub mod alg;
 mod euclid;
-pub mod ring;
 mod polynomial;
 
 pub use polynomial::Polynomial;
