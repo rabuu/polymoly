@@ -1,5 +1,5 @@
 # PolyMoly
-Library and tool to work with polynomials over various rings.
+Library and tool for polynomials over abstract rings.
 
 Work in progress.
 
