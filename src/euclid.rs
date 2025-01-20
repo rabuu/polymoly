@@ -1,17 +1,17 @@
 use crate::structures::{Field, PolyRing, Ring, Z};
 
 pub trait EuclideanRing: Ring {
-    fn euclidean_function(elem: Self::T) -> usize;
-    fn euclidean_division(a: Self::T, b: Self::T) -> (Self::T, Self::T);
+    fn euclidean_function(elem: Self::T) -> Option<usize>;
+    fn euclidean_division(a: Self::T, b: Self::T) -> Option<(Self::T, Self::T)>;
 }
 
 impl EuclideanRing for Z {
-    fn euclidean_function(elem: Self::T) -> usize {
-        elem.unsigned_abs()
+    fn euclidean_function(elem: Self::T) -> Option<usize> {
+        Some(elem.unsigned_abs())
     }
 
-    fn euclidean_division(a: Self::T, b: Self::T) -> (Self::T, Self::T) {
-        (a.div_euclid(b), a.rem_euclid(b))
+    fn euclidean_division(a: Self::T, b: Self::T) -> Option<(Self::T, Self::T)> {
+        (b != 0).then_some((a.div_euclid(b), a.rem_euclid(b)))
     }
 }
 
@@ -20,12 +20,12 @@ where
     F: Field,
     F::T: Clone + PartialEq,
 {
-    fn euclidean_function(elem: Self::T) -> usize {
-        elem.deg().expect("element must be non-zero")
+    fn euclidean_function(elem: Self::T) -> Option<usize> {
+        elem.deg()
     }
 
-    fn euclidean_division(a: Self::T, b: Self::T) -> (Self::T, Self::T) {
-        a.polynomial_division(b).expect("b must be non-zero")
+    fn euclidean_division(a: Self::T, b: Self::T) -> Option<(Self::T, Self::T)> {
+        a.polynomial_division(b)
     }
 }
 
@@ -38,8 +38,13 @@ where
         return None;
     }
 
-    if E::euclidean_division(a.clone(), b.clone()).1 == E::zero() {
+    if b == E::zero() {
         return Some((a, E::one(), E::zero()));
+    }
+
+    let (_, rem) = E::euclidean_division(a.clone(), b.clone()).expect("b is non-zero");
+    if rem == E::zero() {
+        return Some((b, E::zero(), E::one()));
     }
 
     let (mut x, mut y) = (a, b);
@@ -47,8 +52,12 @@ where
     let (mut t1, mut t2) = (E::zero(), E::one());
     let (mut s, mut t) = (E::zero(), E::zero());
 
-    while E::euclidean_division(x.clone(), y.clone()).1 != E::zero() {
-        let (q, r) = E::euclidean_division(x, y.clone());
+    loop {
+        let (q, r) = E::euclidean_division(x.clone(), y.clone()).expect("y is non-zero");
+
+        if r == E::zero() {
+            break;
+        }
 
         s = E::sub(s1, E::mul(q.clone(), s2.clone()));
         t = E::sub(t1, E::mul(q, t2.clone()));

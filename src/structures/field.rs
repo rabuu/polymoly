@@ -4,33 +4,33 @@ use super::Ring;
 use super::{ZMod, R};
 
 pub trait Field: Ring {
-    fn inv(elem: Self::T) -> Self::T;
+    fn inv(elem: Self::T) -> Option<Self::T>;
 
-    fn div(lhs: Self::T, rhs: Self::T) -> Self::T {
-        Self::mul(lhs, Self::inv(rhs))
+    fn div(lhs: Self::T, rhs: Self::T) -> Option<Self::T> {
+        Self::inv(rhs).map(|inv| Self::mul(lhs, inv))
     }
 }
 
 impl Field for R {
-    fn inv(elem: f64) -> f64 {
-        1.0 / elem
+    fn inv(elem: f64) -> Option<f64> {
+        (elem != 0.0).then_some(1.0 / elem)
     }
-}
-
-macro_rules! impl_field_for_zmod {
-    ($n:expr) => {
-        impl Field for ZMod<$n> {
-            fn inv(elem: usize) -> usize {
-                inv_mod_n(elem, $n).expect("division by zero")
-            }
-        }
-    };
 }
 
 fn inv_mod_n(elem: usize, n: usize) -> Option<usize> {
     let elem = elem % n;
     let (_, s, _) = extended_euclidean_int(elem as isize, n as isize)?;
     Some(s.rem_euclid(n as isize) as usize)
+}
+
+macro_rules! impl_field_for_zmod {
+    ($n:expr) => {
+        impl Field for ZMod<$n> {
+            fn inv(elem: usize) -> Option<usize> {
+                inv_mod_n(elem, $n)
+            }
+        }
+    };
 }
 
 impl_field_for_zmod!(2);

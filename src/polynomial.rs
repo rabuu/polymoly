@@ -113,7 +113,7 @@ impl<F: Field> Poly<F> {
             }
 
             let deg = r_deg - d;
-            let quotient = F::div(r.lc(), rhs.lc());
+            let quotient = F::div(r.lc(), rhs.lc()).expect("rhs is not zero");
             let t = Poly::single(quotient, deg);
             q += t.clone();
             r -= t * rhs.clone();
