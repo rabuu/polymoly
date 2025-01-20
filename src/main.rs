@@ -1,13 +1,13 @@
-use polymoly::structures::{PolyRing, R, Z};
+use polymoly::euclid::extended_euclidean;
+use polymoly::structures::{PolyRing, ZMod, Z};
 use polymoly::Poly;
 
 fn main() {
-    let f: Poly<Z> = Poly::new([1, 1, 0, 1]);
-    let g: Poly<Z> = Poly::new([-1, 1]);
-    println!("{:?}", f.clone() + g.clone());
-    println!("{}", f.clone() + g.clone());
+    let g: Poly<ZMod<5>> = Poly::new([3, 3, 0, 0, 2, 1]);
+    let h: Poly<ZMod<5>> = Poly::new([2, 3, 2, 2, 1]);
+    let (gcd, s, t) = extended_euclidean::<PolyRing<ZMod<5>>>(g, h).unwrap();
+    println!("GCD: {gcd}, s: {s}, t: {t}");
 
-    let mega_poly: Poly<PolyRing<Z>> = Poly::new([f, g]);
-
-    println!("{:?}", mega_poly);
+    let (gcd, s, t) = extended_euclidean::<Z>(-48, 30).unwrap();
+    println!("GCD: {gcd}, s: {s}, t: {t}");
 }

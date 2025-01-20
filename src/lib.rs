@@ -1,4 +1,4 @@
-mod euclid;
+pub mod euclid;
 mod polynomial;
 pub mod structures;
 

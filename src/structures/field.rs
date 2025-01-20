@@ -1,4 +1,4 @@
-use crate::euclid::extended_euclidean;
+use crate::euclid::extended_euclidean_int;
 
 use super::Ring;
 use super::{ZMod, R};
@@ -29,7 +29,7 @@ macro_rules! impl_field_for_zmod {
 
 fn inv_mod_n(elem: usize, n: usize) -> Option<usize> {
     let elem = elem % n;
-    let (_, s, _) = extended_euclidean(elem as isize, n as isize)?;
+    let (_, s, _) = extended_euclidean_int(elem as isize, n as isize)?;
     Some(s.rem_euclid(n as isize) as usize)
 }
 

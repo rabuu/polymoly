@@ -1,4 +1,70 @@
-pub fn extended_euclidean(a: isize, b: isize) -> Option<(usize, isize, isize)> {
+use crate::structures::{Field, PolyRing, Ring, Z};
+
+pub trait EuclideanRing: Ring {
+    fn euclidean_function(elem: Self::T) -> usize;
+    fn euclidean_division(a: Self::T, b: Self::T) -> (Self::T, Self::T);
+}
+
+impl EuclideanRing for Z {
+    fn euclidean_function(elem: Self::T) -> usize {
+        elem.unsigned_abs()
+    }
+
+    fn euclidean_division(a: Self::T, b: Self::T) -> (Self::T, Self::T) {
+        (a.div_euclid(b), a.rem_euclid(b))
+    }
+}
+
+impl<F> EuclideanRing for PolyRing<F>
+where
+    F: Field,
+    F::T: Clone + PartialEq,
+{
+    fn euclidean_function(elem: Self::T) -> usize {
+        elem.deg().expect("element must be non-zero")
+    }
+
+    fn euclidean_division(a: Self::T, b: Self::T) -> (Self::T, Self::T) {
+        a.polynomial_division(b).expect("b must be non-zero")
+    }
+}
+
+pub fn extended_euclidean<E>(a: E::T, b: E::T) -> Option<(E::T, E::T, E::T)>
+where
+    E: EuclideanRing,
+    E::T: Clone + PartialEq,
+{
+    if a == E::zero() && b == E::zero() {
+        return None;
+    }
+
+    if E::euclidean_division(a.clone(), b.clone()).1 == E::zero() {
+        return Some((a, E::one(), E::zero()));
+    }
+
+    let (mut x, mut y) = (a, b);
+    let (mut s1, mut s2) = (E::one(), E::zero());
+    let (mut t1, mut t2) = (E::zero(), E::one());
+    let (mut s, mut t) = (E::zero(), E::zero());
+
+    while E::euclidean_division(x.clone(), y.clone()).1 != E::zero() {
+        let (q, r) = E::euclidean_division(x, y.clone());
+
+        s = E::sub(s1, E::mul(q.clone(), s2.clone()));
+        t = E::sub(t1, E::mul(q, t2.clone()));
+        s1 = s2;
+        s2 = s.clone();
+        t1 = t2;
+        t2 = t.clone();
+
+        x = y;
+        y = r;
+    }
+
+    Some((y, s, t))
+}
+
+pub fn extended_euclidean_int(a: isize, b: isize) -> Option<(usize, isize, isize)> {
     if a == 0 && b == 0 {
         return None;
     }
@@ -42,7 +108,7 @@ mod tests {
 
     #[test]
     fn eea_48_neg30() {
-        let (gcm, s, t) = extended_euclidean(48, -30).unwrap();
-        assert_eq!((gcm, s, t), (6, 2, 3));
+        let (gcd, s, t) = extended_euclidean_int(48, -30).unwrap();
+        assert_eq!((gcd, s, t), (6, 2, 3));
     }
 }
