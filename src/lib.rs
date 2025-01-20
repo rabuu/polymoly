@@ -14,6 +14,10 @@ pub trait Ring {
     fn sub(lhs: Self::T, rhs: Self::T) -> Self::T {
         Self::add(lhs, Self::neg(rhs))
     }
+
+    fn id(elem: Self::T) -> Self::T {
+        elem
+    }
 }
 
 pub trait CommutativeRing: Ring {}
@@ -66,6 +70,34 @@ impl Ring for Z {
 
 impl CommutativeRing for Z {}
 
+pub struct ZMod<const N: usize>;
+
+impl<const N: usize> Ring for ZMod<N> {
+    type T = usize;
+
+    const ZERO: usize = 0;
+    const ONE: usize = 1;
+
+    fn add(lhs: usize, rhs: usize) -> usize {
+        (lhs + rhs) % N
+    }
+
+    fn neg(elem: usize) -> usize {
+        let negative: isize = -(elem as isize);
+        (negative.rem_euclid(N as isize)) as usize
+    }
+
+    fn mul(lhs: usize, rhs: usize) -> usize {
+        (lhs * rhs) % N
+    }
+
+    fn id(elem: usize) -> usize {
+        elem % N
+    }
+}
+
+impl<const N: usize> CommutativeRing for ZMod<N> {}
+
 pub struct Polynomial<R: CommutativeRing>(Vec<R::T>);
 
 impl<R: CommutativeRing> Polynomial<R> {
@@ -80,7 +112,7 @@ impl<R: CommutativeRing> Polynomial<R> {
     }
 
     pub fn constant(constant: R::T) -> Self {
-        Self(vec![constant])
+        Self(vec![R::id(constant)])
     }
 
     pub fn add_elem(&mut self, elem: R::T, deg: usize)
@@ -88,7 +120,7 @@ impl<R: CommutativeRing> Polynomial<R> {
         R::T: Clone + PartialEq,
     {
         self.resize(deg + 1);
-        self.0[deg] = R::add(self.0[deg].clone(), elem);
+        self.0[deg] = R::add(self.0[deg].clone(), R::id(elem));
         self.restore_length();
     }
 
@@ -96,7 +128,7 @@ impl<R: CommutativeRing> Polynomial<R> {
     where
         R::T: Clone,
     {
-        self.0[deg] = R::add(self.0[deg].clone(), elem);
+        self.0[deg] = R::add(self.0[deg].clone(), R::id(elem));
     }
 
     pub fn deg(&self) -> Option<usize> {
