@@ -166,35 +166,6 @@ impl<R: CommutativeRing> Polynomial<R> {
     }
 }
 
-impl<R> Default for Polynomial<R>
-where
-    R: CommutativeRing,
-{
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<R> Debug for Polynomial<R>
-where
-    R: CommutativeRing,
-    R::T: Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("Polynomial").field(&self.0).finish()
-    }
-}
-
-impl<R> Clone for Polynomial<R>
-where
-    R: CommutativeRing,
-    R::T: Clone,
-{
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-
 impl<R> ops::Add<Polynomial<R>> for Polynomial<R>
 where
     R: CommutativeRing,
@@ -285,5 +256,44 @@ where
             self.add_elem_unsafe(R::neg(elem), i);
         }
         self.restore_length();
+    }
+}
+
+impl<R> Default for Polynomial<R>
+where
+    R: CommutativeRing,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<R> Debug for Polynomial<R>
+where
+    R: CommutativeRing,
+    R::T: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Polynomial").field(&self.0).finish()
+    }
+}
+
+impl<R> Clone for Polynomial<R>
+where
+    R: CommutativeRing,
+    R::T: Clone,
+{
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl<R> PartialEq for Polynomial<R>
+where
+    R: CommutativeRing,
+    R::T: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
     }
 }
