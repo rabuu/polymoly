@@ -30,8 +30,8 @@ impl<R: CommutativeRing> Polynomial<R> {
     where
         R::T: Clone + PartialEq,
     {
-        self.resize(deg + 1);
-        self.0[deg] = R::add(self.0[deg].clone(), R::id(elem));
+        self.fill_with_zeros(deg + 1);
+        self.add_elem_unsafe(elem, deg);
         self.restore_length();
     }
 
@@ -53,7 +53,7 @@ impl<R: CommutativeRing> Polynomial<R> {
         self.0.last().cloned().unwrap_or(R::ZERO)
     }
 
-    fn resize(&mut self, new_len: usize) {
+    fn fill_with_zeros(&mut self, new_len: usize) {
         if new_len > self.0.len() {
             self.0.resize_with(new_len, || R::ZERO);
         }
@@ -108,7 +108,7 @@ where
     R::T: Clone + PartialEq,
 {
     fn add_assign(&mut self, rhs: Polynomial<R>) {
-        self.resize(rhs.0.len());
+        self.fill_with_zeros(rhs.0.len());
         for (i, elem) in rhs.0.into_iter().enumerate() {
             self.add_elem_unsafe(elem, i);
         }
@@ -162,7 +162,7 @@ where
     R::T: Clone + PartialEq,
 {
     fn sub_assign(&mut self, rhs: Polynomial<R>) {
-        self.resize(rhs.0.len());
+        self.fill_with_zeros(rhs.0.len());
         for (i, elem) in rhs.0.into_iter().enumerate() {
             self.add_elem_unsafe(R::neg(elem), i);
         }
