@@ -1,4 +1,5 @@
-use polymoly::{Polynomial, ZMod};
+use polymoly::Polynomial;
+use polymoly::ring::ZMod;
 
 fn main() {
     let mut p: Polynomial<ZMod<5>> = Polynomial::with_capacity(3);
