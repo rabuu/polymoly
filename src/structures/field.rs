@@ -4,24 +4,24 @@ use super::Ring;
 use super::{ZMod, R};
 
 pub trait Field: Ring {
-    fn inv(elem: Self::T) -> Option<Self::T>;
+    fn inv(elem: Self::T) -> Self::T;
 
-    fn div(lhs: Self::T, rhs: Self::T) -> Option<Self::T> {
-        Some(Self::mul(lhs, Self::inv(rhs)?))
+    fn div(lhs: Self::T, rhs: Self::T) -> Self::T {
+        Self::mul(lhs, Self::inv(rhs))
     }
 }
 
 impl Field for R {
-    fn inv(elem: f64) -> Option<f64> {
-        (elem != 0.0).then_some(1.0 / elem)
+    fn inv(elem: f64) -> f64 {
+        1.0 / elem
     }
 }
 
 macro_rules! impl_field_for_zmod {
     ($n:expr) => {
         impl Field for ZMod<$n> {
-            fn inv(elem: usize) -> Option<usize> {
-                inv_mod_n(elem, $n)
+            fn inv(elem: usize) -> usize {
+                inv_mod_n(elem, $n).expect("division by zero")
             }
         }
     };
