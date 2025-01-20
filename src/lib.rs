@@ -1,4 +1,4 @@
-pub mod alg;
+pub mod structures;
 mod euclid;
 mod polynomial;
 

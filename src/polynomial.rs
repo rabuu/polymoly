@@ -1,6 +1,6 @@
 use std::{fmt, ops};
 
-use crate::alg::{CommutativeRing, Field};
+use crate::structures::{CommutativeRing, Field};
 
 pub struct Polynomial<R: CommutativeRing>(Vec<R::T>);
 

@@ -1,5 +1,5 @@
 use polymoly::Polynomial;
-use polymoly::alg::R;
+use polymoly::structures::R;
 
 fn main() {
     let mut f: Polynomial<R> = Polynomial::new();
