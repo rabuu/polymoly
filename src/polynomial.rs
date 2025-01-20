@@ -310,7 +310,7 @@ where
                 str.push_str(" + ");
             }
 
-            let elem = (*elem != R::one()).then_some(elem);
+            let elem = (*elem != R::one() || i == 0).then_some(elem);
             let elem_str = elem.map(|e| format!("{e}")).unwrap_or_default();
 
             let x = match i {
