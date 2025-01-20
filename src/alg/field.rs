@@ -5,6 +5,10 @@ use super::{R, ZMod};
 
 pub trait Field: CommutativeRing {
     fn inv(elem: Self::T) -> Option<Self::T>;
+
+    fn div(lhs: Self::T, rhs: Self::T) -> Option<Self::T> {
+        Some(Self::mul(lhs, Self::inv(rhs)?))
+    }
 }
 
 impl Field for R {

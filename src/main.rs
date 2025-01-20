@@ -1,14 +1,15 @@
 use polymoly::Polynomial;
-use polymoly::alg::{Field, ZMod};
+use polymoly::alg::R;
 
 fn main() {
-    let mut p: Polynomial<ZMod<5>> = Polynomial::with_capacity(3);
-    p.add_elem(3, 2);
-    p.add_elem(1, 1);
-    p.add_elem(4, 0);
-    let mut q: Polynomial<ZMod<5>> = Polynomial::with_capacity(3);
-    q.add_elem(1, 1);
-    q.add_elem(2, 0);
+    let mut f: Polynomial<R> = Polynomial::new();
+    f.add_elem(1.0, 3);
+    f.add_elem(1.0, 1);
+    f.add_elem(1.0, 0);
 
-    println!("{:?}", ZMod::<43>::inv(16));
+    let mut g: Polynomial<R> = Polynomial::new();
+    g.add_elem(1.0, 1);
+    g.add_elem(-1.0, 0);
+
+    println!("{:?}", f.polynomial_division(g));
 }

@@ -1,6 +1,6 @@
 use std::{fmt, ops};
 
-use crate::alg::CommutativeRing;
+use crate::alg::{CommutativeRing, Field};
 
 pub struct Polynomial<R: CommutativeRing>(Vec<R::T>);
 
@@ -74,6 +74,32 @@ impl<R: CommutativeRing> Polynomial<R> {
                 break;
             }
         }
+    }
+}
+
+impl<F: Field> Polynomial<F> {
+    pub fn polynomial_division(self, rhs: Polynomial<F>) -> Option<(Polynomial<F>, Polynomial<F>)>
+    where
+        F::T: Clone + PartialEq,
+    {
+        if rhs == Polynomial::<F>::ZERO {
+            return None;
+        }
+
+        let mut q = Polynomial::<F>::zeros(self.0.len());
+        let mut r = self;
+
+        while r != Polynomial::<F>::ZERO && r.deg().unwrap() >= rhs.deg().unwrap() {
+            let i = r.deg().unwrap() - rhs.deg().unwrap();
+            let t_elem = F::div(r.lc(), rhs.lc()).unwrap();
+            let mut t = Polynomial::with_capacity(i + 1);
+            t.add_elem(t_elem, i);
+            q += t.clone();
+            r -= t * rhs.clone();
+            r.restore_length();
+        }
+
+        Some((q, r))
     }
 }
 
