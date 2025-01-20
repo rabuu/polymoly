@@ -7,8 +7,9 @@ pub struct Polynomial<R: CommutativeRing>(Vec<R::T>);
 impl<R: CommutativeRing> Polynomial<R> {
     pub const ZERO: Self = Self(Vec::new());
 
-    pub fn new() -> Self {
-        Self::ZERO
+    pub fn new(elems: impl Into<Vec<R::T>>) -> Self {
+        let elems = elems.into().into_iter().map(R::id).collect();
+        Self(elems)
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
@@ -24,6 +25,15 @@ impl<R: CommutativeRing> Polynomial<R> {
 
     pub fn constant(constant: R::T) -> Self {
         Self(vec![R::id(constant)])
+    }
+
+    pub fn single(elem: R::T, deg: usize) -> Self
+    where
+        R::T: Clone,
+    {
+        let mut elems = vec![R::ZERO; deg + 1];
+        elems[deg] = elem;
+        Self(elems)
     }
 
     pub fn add_elem(&mut self, elem: R::T, deg: usize)
@@ -51,6 +61,13 @@ impl<R: CommutativeRing> Polynomial<R> {
         R::T: Clone,
     {
         self.0.last().cloned().unwrap_or(R::ZERO)
+    }
+
+    pub fn is_zero(&self) -> bool
+    where
+        R::T: PartialEq,
+    {
+        self.0.is_empty()
     }
 
     fn fill_with_zeros(&mut self, new_len: usize) {
@@ -82,21 +99,26 @@ impl<F: Field> Polynomial<F> {
     where
         F::T: Clone + PartialEq,
     {
-        if rhs == Polynomial::<F>::ZERO {
+        if rhs.is_zero() {
             return None;
         }
 
         let mut q = Polynomial::<F>::zeros(self.0.len());
         let mut r = self;
+        let d = rhs.deg().expect("rhs is not zero");
 
-        while r != Polynomial::<F>::ZERO && r.deg().unwrap() >= rhs.deg().unwrap() {
-            let i = r.deg().unwrap() - rhs.deg().unwrap();
-            let t_elem = F::div(r.lc(), rhs.lc()).unwrap();
-            let mut t = Polynomial::with_capacity(i + 1);
-            t.add_elem(t_elem, i);
+        while !r.is_zero() {
+            let r_deg = r.deg().expect("r is not zero");
+
+            if r_deg < d {
+                break;
+            }
+
+            let deg = r_deg - d;
+            let quotient = F::div(r.lc(), rhs.lc()).expect("rhs is not zero");
+            let t = Polynomial::single(quotient, deg);
             q += t.clone();
             r -= t * rhs.clone();
-            r.restore_length();
         }
 
         Some((q, r))
@@ -235,7 +257,7 @@ where
     R: CommutativeRing,
 {
     fn default() -> Self {
-        Self::new()
+        Self::ZERO
     }
 }
 
