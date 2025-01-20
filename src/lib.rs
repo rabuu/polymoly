@@ -111,6 +111,13 @@ impl<R: CommutativeRing> Polynomial<R> {
         Self(Vec::with_capacity(capacity))
     }
 
+    fn zeros(len: usize) -> Self
+    where
+        R::T: Clone,
+    {
+        Self(vec![R::ZERO; len])
+    }
+
     pub fn constant(constant: R::T) -> Self {
         Self(vec![R::id(constant)])
     }
@@ -256,6 +263,40 @@ where
             self.add_elem_unsafe(R::neg(elem), i);
         }
         self.restore_length();
+    }
+}
+
+impl<R> ops::Mul<Polynomial<R>> for Polynomial<R>
+where
+    R: CommutativeRing,
+    R::T: Clone + PartialEq,
+{
+    type Output = Polynomial<R>;
+
+    fn mul(self, rhs: Polynomial<R>) -> Self::Output {
+        let n = self.deg().unwrap_or(0);
+        let m = rhs.deg().unwrap_or(0);
+        let mut out = Self::zeros(n + m + 1);
+
+        for (i, a) in self.0.iter().enumerate() {
+            for (j, b) in rhs.0.iter().enumerate() {
+                out.add_elem_unsafe(R::mul(a.clone(), b.clone()), i + j);
+            }
+        }
+
+        out.restore_length();
+        out
+    }
+}
+
+impl<R> ops::MulAssign<Polynomial<R>> for Polynomial<R>
+where
+    R: CommutativeRing,
+    R::T: Clone + PartialEq,
+{
+    fn mul_assign(&mut self, rhs: Polynomial<R>) {
+        let product = self.clone() * rhs;
+        *self = product;
     }
 }
 
