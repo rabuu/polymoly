@@ -1,4 +1,3 @@
-use std::fmt::Display;
 use std::{fmt, ops};
 
 use crate::structures::{Field, Ring};
@@ -283,7 +282,22 @@ where
 impl<R> fmt::Debug for Poly<R>
 where
     R: Ring,
-    R::T: fmt::Display + PartialEq,
+    R::T: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Poly").field(&self.0).finish()
+    }
+}
+
+trait SimpleDisplay: fmt::Display {}
+impl SimpleDisplay for f64 {}
+impl SimpleDisplay for isize {}
+impl SimpleDisplay for usize {}
+
+impl<R> fmt::Display for Poly<R>
+where
+    R: Ring,
+    R::T: SimpleDisplay + PartialEq,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut str = String::with_capacity(self.0.len() * 3);
@@ -292,15 +306,19 @@ where
                 continue;
             }
 
+            if i < self.0.len() - 1 {
+                str.push_str(" + ");
+            }
+
+            let elem = (*elem != R::one()).then_some(elem);
+            let elem_str = elem.map(|e| format!("{e}")).unwrap_or_default();
+
             let x = match i {
                 0 => "".to_string(),
                 1 => "x".to_string(),
                 _ => format!("x^{i}"),
             };
-            str.push_str(&format!("{elem}{x}"));
-            if i > 0 {
-                str.push_str(" + ");
-            }
+            str.push_str(&format!("{elem_str}{x}"));
         }
 
         if str.is_empty() {
@@ -308,15 +326,5 @@ where
         }
 
         write!(f, "{str}")
-    }
-}
-
-impl<R> fmt::Display for Poly<R>
-where
-    R: Ring,
-    R::T: Display + PartialEq,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:?}")
     }
 }
