@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::{fmt, ops};
 
 use crate::structures::{CommutativeRing, Field};
@@ -261,16 +262,6 @@ where
     }
 }
 
-impl<R> fmt::Debug for Polynomial<R>
-where
-    R: CommutativeRing,
-    R::T: fmt::Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("Polynomial").field(&self.0).finish()
-    }
-}
-
 impl<R> Clone for Polynomial<R>
 where
     R: CommutativeRing,
@@ -288,5 +279,46 @@ where
 {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
+    }
+}
+
+impl<R> fmt::Debug for Polynomial<R>
+where
+    R: CommutativeRing,
+    R::T: fmt::Display + PartialEq,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut str = String::with_capacity(self.0.len() * 3);
+        for (i, elem) in self.0.iter().enumerate().rev() {
+            if *elem == R::ZERO {
+                continue;
+            }
+
+            let x = match i {
+                0 => "".to_string(),
+                1 => "x".to_string(),
+                _ => format!("x^{i}"),
+            };
+            str.push_str(&format!("{elem}{x}"));
+            if i > 0 {
+                str.push_str(" + ");
+            }
+        }
+
+        if str.is_empty() {
+            str = format!("{}", R::ZERO);
+        }
+
+        write!(f, "{str}")
+    }
+}
+
+impl<R> fmt::Display for Polynomial<R>
+where
+    R: CommutativeRing,
+    R::T: Display + PartialEq,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{self:?}")
     }
 }
