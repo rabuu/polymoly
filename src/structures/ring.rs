@@ -1,10 +1,12 @@
-use super::{R, Z, ZMod};
+use crate::Polynomial;
+
+use super::{PolyRing, ZMod, R, Z};
 
 pub trait Ring {
     type T;
 
-    const ZERO: Self::T;
-    const ONE: Self::T;
+    fn zero() -> Self::T;
+    fn one() -> Self::T;
 
     fn add(lhs: Self::T, rhs: Self::T) -> Self::T;
     fn neg(elem: Self::T) -> Self::T;
@@ -24,8 +26,13 @@ pub trait CommutativeRing: Ring {}
 impl Ring for R {
     type T = f64;
 
-    const ZERO: f64 = 0.0;
-    const ONE: f64 = 1.0;
+    fn zero() -> Self::T {
+        0.0
+    }
+
+    fn one() -> Self::T {
+        1.0
+    }
 
     fn add(lhs: f64, rhs: f64) -> f64 {
         lhs + rhs
@@ -43,8 +50,13 @@ impl Ring for R {
 impl Ring for Z {
     type T = isize;
 
-    const ZERO: isize = 0;
-    const ONE: isize = 1;
+    fn zero() -> Self::T {
+        0
+    }
+
+    fn one() -> Self::T {
+        1
+    }
 
     fn add(lhs: isize, rhs: isize) -> isize {
         lhs + rhs
@@ -62,8 +74,13 @@ impl Ring for Z {
 impl<const N: usize> Ring for ZMod<N> {
     type T = usize;
 
-    const ZERO: usize = 0;
-    const ONE: usize = 1;
+    fn zero() -> Self::T {
+        0
+    }
+
+    fn one() -> Self::T {
+        1
+    }
 
     fn add(lhs: usize, rhs: usize) -> usize {
         (lhs + rhs) % N
@@ -83,6 +100,41 @@ impl<const N: usize> Ring for ZMod<N> {
     }
 }
 
+impl<R> Ring for PolyRing<R>
+where
+    R: CommutativeRing,
+    R::T: Clone + PartialEq,
+{
+    type T = Polynomial<R>;
+
+    fn zero() -> Self::T {
+        Polynomial::default()
+    }
+
+    fn one() -> Self::T {
+        Polynomial::constant(R::one())
+    }
+
+    fn add(lhs: Self::T, rhs: Self::T) -> Self::T {
+        lhs + rhs
+    }
+
+    fn neg(elem: Self::T) -> Self::T {
+        -elem
+    }
+
+    fn mul(lhs: Self::T, rhs: Self::T) -> Self::T {
+        lhs * rhs
+    }
+}
+
 impl CommutativeRing for R {}
 impl CommutativeRing for Z {}
 impl<const N: usize> CommutativeRing for ZMod<N> {}
+
+impl<R> CommutativeRing for PolyRing<R>
+where
+    R: CommutativeRing,
+    R::T: Clone + PartialEq,
+{
+}

@@ -1,7 +1,7 @@
 use crate::euclid::extended_euclidean;
 
 use super::CommutativeRing;
-use super::{R, ZMod};
+use super::{ZMod, R};
 
 pub trait Field: CommutativeRing {
     fn inv(elem: Self::T) -> Option<Self::T>;
@@ -28,9 +28,9 @@ macro_rules! impl_field_for_zmod {
 }
 
 fn inv_mod_n(elem: usize, n: usize) -> Option<usize> {
-        let elem = elem % n;
-        let (_, s, _) = extended_euclidean(elem as isize, n as isize)?;
-        Some(s.rem_euclid(n as isize) as usize)
+    let elem = elem % n;
+    let (_, s, _) = extended_euclidean(elem as isize, n as isize)?;
+    Some(s.rem_euclid(n as isize) as usize)
 }
 
 impl_field_for_zmod!(2);

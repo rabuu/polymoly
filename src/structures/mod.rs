@@ -1,8 +1,10 @@
-mod ring;
 mod field;
+mod ring;
 
-pub use ring::{Ring, CommutativeRing};
+use std::marker::PhantomData;
+
 pub use field::Field;
+pub use ring::{CommutativeRing, Ring};
 
 #[derive(Debug)]
 pub struct R;
@@ -12,3 +14,6 @@ pub struct Z;
 
 #[derive(Debug)]
 pub struct ZMod<const N: usize>;
+
+#[derive(Debug)]
+pub struct PolyRing<R: CommutativeRing>(PhantomData<R>);

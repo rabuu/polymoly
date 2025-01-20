@@ -6,8 +6,6 @@ use crate::structures::{CommutativeRing, Field};
 pub struct Polynomial<R: CommutativeRing>(Vec<R::T>);
 
 impl<R: CommutativeRing> Polynomial<R> {
-    pub const ZERO: Self = Self(Vec::new());
-
     pub fn new(elems: impl Into<Vec<R::T>>) -> Self {
         let elems = elems.into().into_iter().map(R::id).collect();
         Self(elems)
@@ -21,7 +19,7 @@ impl<R: CommutativeRing> Polynomial<R> {
     where
         R::T: Clone,
     {
-        Self(vec![R::ZERO; len])
+        Self(vec![R::zero(); len])
     }
 
     pub fn constant(constant: R::T) -> Self {
@@ -32,7 +30,7 @@ impl<R: CommutativeRing> Polynomial<R> {
     where
         R::T: Clone,
     {
-        let mut elems = vec![R::ZERO; deg + 1];
+        let mut elems = vec![R::zero(); deg + 1];
         elems[deg] = elem;
         Self(elems)
     }
@@ -61,7 +59,7 @@ impl<R: CommutativeRing> Polynomial<R> {
     where
         R::T: Clone,
     {
-        self.0.last().cloned().unwrap_or(R::ZERO)
+        self.0.last().cloned().unwrap_or(R::zero())
     }
 
     pub fn is_zero(&self) -> bool
@@ -73,7 +71,7 @@ impl<R: CommutativeRing> Polynomial<R> {
 
     fn fill_with_zeros(&mut self, new_len: usize) {
         if new_len > self.0.len() {
-            self.0.resize_with(new_len, || R::ZERO);
+            self.0.resize_with(new_len, || R::zero());
         }
     }
 
@@ -83,7 +81,7 @@ impl<R: CommutativeRing> Polynomial<R> {
     {
         for _ in 0..self.0.len() {
             if let Some(elem) = self.0.last() {
-                if *elem == R::ZERO {
+                if *elem == R::zero() {
                     self.0.pop();
                 } else {
                     break;
@@ -258,7 +256,7 @@ where
     R: CommutativeRing,
 {
     fn default() -> Self {
-        Self::ZERO
+        Self(Vec::new())
     }
 }
 
@@ -290,7 +288,7 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut str = String::with_capacity(self.0.len() * 3);
         for (i, elem) in self.0.iter().enumerate().rev() {
-            if *elem == R::ZERO {
+            if *elem == R::zero() {
                 continue;
             }
 
@@ -306,7 +304,7 @@ where
         }
 
         if str.is_empty() {
-            str = format!("{}", R::ZERO);
+            str = format!("{}", R::zero());
         }
 
         write!(f, "{str}")
