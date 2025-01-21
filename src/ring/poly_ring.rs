@@ -1,13 +1,13 @@
 //! The ring of polynomials `R[x]`
 
-use std::marker::PhantomData;
-
 use super::Ring;
 use crate::Poly;
 
 /// The ring of polynomials `R[x]` where `R` is another ring
-#[derive(Debug)]
-pub struct PolyRing<R: Ring>(PhantomData<R>);
+#[derive(Debug, Clone, Copy)]
+pub struct PolyRing<R: Ring> {
+    ring: R,
+}
 
 impl<R> Ring for PolyRing<R>
 where
@@ -16,23 +16,23 @@ where
 {
     type Element = Poly<R>;
 
-    fn zero() -> Self::Element {
-        Poly::zero()
+    fn zero(&self) -> Self::Element {
+        Poly::zero(self.ring)
     }
 
-    fn one() -> Self::Element {
-        Poly::constant(R::one())
+    fn one(&self) -> Self::Element {
+        Poly::constant(self.ring, self.ring.one())
     }
 
-    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+    fn add(&self, lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs + rhs
     }
 
-    fn neg(elem: Self::Element) -> Self::Element {
+    fn neg(&self, elem: Self::Element) -> Self::Element {
         -elem
     }
 
-    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+    fn mul(&self, lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs * rhs
     }
 }

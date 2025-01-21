@@ -1,9 +1,10 @@
-use polymoly::ring::{ZMod, R, Z};
+use polymoly::{ZMod, R, Z};
 use polymoly::Poly;
 
 fn main() {
-    let g: Poly<R> = "0.5x+-3x^2+5x^1+1x^0".parse().unwrap();
-    let h: Poly<Z> = "4x+-3x^2+5x^1+1x^0".parse().unwrap();
-    let l: Poly<ZMod<7>> = "4x+3x^2+5x^1+1x^0".parse().unwrap();
+    let g = Poly::parse(R, "0.5x+-3x^2+5x^1+1x^0").unwrap();
+    let h = Poly::parse(Z, "4x+-3x^2+5x^1+1x^0").unwrap();
+    let l = Poly::parse(ZMod::<7>, "4x+-3x^2+5x^1+1x^0").unwrap();
     println!("{g}\n{h}\n{l}");
+    println!("{g:?}\n{h:?}\n{l:?}");
 }

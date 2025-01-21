@@ -6,30 +6,30 @@ pub mod real;
 pub mod zmod;
 
 /// An algebraic commutative ring
-pub trait Ring {
+pub trait Ring: Copy {
     type Element;
 
-    fn zero() -> Self::Element;
-    fn one() -> Self::Element;
+    fn zero(&self) -> Self::Element;
+    fn one(&self) -> Self::Element;
 
-    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element;
-    fn neg(elem: Self::Element) -> Self::Element;
-    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element;
+    fn add(&self, lhs: Self::Element, rhs: Self::Element) -> Self::Element;
+    fn neg(&self, elem: Self::Element) -> Self::Element;
+    fn mul(&self, lhs: Self::Element, rhs: Self::Element) -> Self::Element;
 
-    fn sub(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
-        Self::add(lhs, Self::neg(rhs))
+    fn sub(&self, lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+        self.add(lhs, self.neg(rhs))
     }
 
-    fn id(elem: Self::Element) -> Self::Element {
+    fn id(&self, elem: Self::Element) -> Self::Element {
         elem
     }
 }
 
 /// An algebraic field
 pub trait Field: Ring {
-    fn inv(elem: Self::Element) -> Option<Self::Element>;
+    fn inv(&self, elem: Self::Element) -> Option<Self::Element>;
 
-    fn div(lhs: Self::Element, rhs: Self::Element) -> Option<Self::Element> {
-        Self::inv(rhs).map(|inv| Self::mul(lhs, inv))
+    fn div(&self, lhs: Self::Element, rhs: Self::Element) -> Option<Self::Element> {
+        self.inv(rhs).map(|inv| self.mul(lhs, inv))
     }
 }

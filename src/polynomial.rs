@@ -1,44 +1,54 @@
-use std::str::FromStr;
 use std::{fmt, ops};
 
 use crate::parse::ParsableRing;
 use crate::ring::{Field, Ring};
 
 /// A polynomial over the ring `R`
-pub struct Poly<R: Ring>(Vec<R::Element>);
+pub struct Poly<R: Ring> {
+    ring: R,
+    elems: Vec<R::Element>,
+}
 
 impl<R: Ring> Poly<R> {
-    pub fn new(elems: impl Into<Vec<R::Element>>) -> Self {
-        let elems = elems.into().into_iter().map(R::id).collect();
-        Self(elems)
+    pub fn new(ring: R, elems: impl Into<Vec<R::Element>>) -> Self {
+        let elems = elems.into().into_iter().map(|e| ring.id(e)).collect();
+        Self { ring, elems }
     }
 
-    pub fn with_capacity(capacity: usize) -> Self {
-        Self(Vec::with_capacity(capacity))
+    pub fn with_capacity(ring: R, capacity: usize) -> Self {
+        Self::new(ring, Vec::with_capacity(capacity))
     }
 
-    pub fn zero() -> Self {
-        Self(vec![])
+    pub fn zero(ring: R) -> Self {
+        Self::new(ring, vec![])
     }
 
-    fn zeros(len: usize) -> Self
+    fn zeros(ring: R, len: usize) -> Self
     where
         R::Element: Clone,
     {
-        Self(vec![R::zero(); len])
+        Self::new(ring, vec![ring.zero(); len])
     }
 
-    pub fn constant(constant: R::Element) -> Self {
-        Self(vec![R::id(constant)])
+    pub fn constant(ring: R, constant: R::Element) -> Self {
+        Self::new(ring, vec![ring.id(constant)])
     }
 
-    pub fn single(elem: R::Element, deg: usize) -> Self
+    pub fn single(ring: R, elem: R::Element, deg: usize) -> Self
     where
         R::Element: Clone,
     {
-        let mut elems = vec![R::zero(); deg + 1];
+        let mut elems = vec![ring.zero(); deg + 1];
         elems[deg] = elem;
-        Self(elems)
+        Self::new(ring, elems)
+    }
+
+    pub fn parse(ring: R, input: &str) -> Option<Self>
+    where
+        R: ParsableRing,
+        R::Element: Clone + PartialEq,
+    {
+        ring.parse_poly(input)
     }
 
     pub fn add_elem(&mut self, elem: R::Element, deg: usize)
@@ -54,30 +64,30 @@ impl<R: Ring> Poly<R> {
     where
         R::Element: Clone,
     {
-        self.0[deg] = R::add(self.0[deg].clone(), R::id(elem));
+        self.elems[deg] = self.ring.add(self.elems[deg].clone(), self.ring.id(elem));
     }
 
     pub fn deg(&self) -> Option<usize> {
-        (!self.0.is_empty()).then_some(self.0.len())
+        (!self.elems.is_empty()).then_some(self.elems.len() - 1)
     }
 
     pub fn lc(&self) -> R::Element
     where
         R::Element: Clone,
     {
-        self.0.last().cloned().unwrap_or(R::zero())
+        self.elems.last().cloned().unwrap_or(self.ring.zero())
     }
 
     pub fn is_zero(&self) -> bool
     where
         R::Element: PartialEq,
     {
-        self.0.is_empty()
+        self.elems.is_empty()
     }
 
     fn fill_with_zeros(&mut self, new_len: usize) {
-        if new_len > self.0.len() {
-            self.0.resize_with(new_len, || R::zero());
+        if new_len > self.elems.len() {
+            self.elems.resize_with(new_len, || self.ring.zero());
         }
     }
 
@@ -85,10 +95,10 @@ impl<R: Ring> Poly<R> {
     where
         R::Element: PartialEq,
     {
-        for _ in 0..self.0.len() {
-            if let Some(elem) = self.0.last() {
-                if *elem == R::zero() {
-                    self.0.pop();
+        for _ in 0..self.elems.len() {
+            if let Some(elem) = self.elems.last() {
+                if *elem == self.ring.zero() {
+                    self.elems.pop();
                 } else {
                     break;
                 }
@@ -108,7 +118,8 @@ impl<F: Field> Poly<F> {
             return None;
         }
 
-        let mut q = Poly::<F>::zeros(self.0.len());
+        let ring = self.ring;
+        let mut q = Poly::zeros(self.ring, self.elems.len());
         let mut r = self;
         let d = rhs.deg().expect("rhs is not zero");
 
@@ -120,8 +131,8 @@ impl<F: Field> Poly<F> {
             }
 
             let deg = r_deg - d;
-            let quotient = F::div(r.lc(), rhs.lc()).expect("rhs is not zero");
-            let t = Poly::single(quotient, deg);
+            let quotient = ring.div(r.lc(), rhs.lc()).expect("rhs is not zero");
+            let t = Poly::single(ring, quotient, deg);
             q += t.clone();
             r -= t * rhs.clone();
         }
@@ -138,7 +149,7 @@ where
     type Output = Poly<R>;
 
     fn add(self, rhs: Poly<R>) -> Self::Output {
-        let (longer, shorter) = if self.0.len() > rhs.0.len() {
+        let (longer, shorter) = if self.elems.len() > rhs.elems.len() {
             (self, rhs)
         } else {
             (rhs, self)
@@ -146,7 +157,7 @@ where
 
         let mut out = longer.clone();
 
-        for (i, elem) in shorter.0.into_iter().enumerate() {
+        for (i, elem) in shorter.elems.into_iter().enumerate() {
             out.add_elem_unsafe(elem, i);
         }
 
@@ -161,8 +172,8 @@ where
     R::Element: Clone + PartialEq,
 {
     fn add_assign(&mut self, rhs: Poly<R>) {
-        self.fill_with_zeros(rhs.0.len());
-        for (i, elem) in rhs.0.into_iter().enumerate() {
+        self.fill_with_zeros(rhs.elems.len());
+        for (i, elem) in rhs.elems.into_iter().enumerate() {
             self.add_elem_unsafe(elem, i);
         }
         self.restore_length();
@@ -176,9 +187,9 @@ where
     type Output = Poly<R>;
 
     fn neg(self) -> Self::Output {
-        let mut out = Self::with_capacity(self.0.len());
-        for elem in self.0 {
-            out.0.push(R::neg(elem));
+        let mut out = Self::with_capacity(self.ring, self.elems.len());
+        for elem in self.elems {
+            out.elems.push(self.ring.neg(elem));
         }
         out
     }
@@ -192,7 +203,9 @@ where
     type Output = Poly<R>;
 
     fn sub(self, rhs: Poly<R>) -> Self::Output {
-        let (longer, shorter) = if self.0.len() > rhs.0.len() {
+        let ring = self.ring;
+
+        let (longer, shorter) = if self.elems.len() > rhs.elems.len() {
             (self, rhs)
         } else {
             (rhs, self)
@@ -200,8 +213,8 @@ where
 
         let mut out = longer.clone();
 
-        for (i, elem) in shorter.0.into_iter().enumerate() {
-            out.add_elem_unsafe(R::neg(elem), i);
+        for (i, elem) in shorter.elems.into_iter().enumerate() {
+            out.add_elem_unsafe(ring.neg(elem), i);
         }
 
         out.restore_length();
@@ -215,9 +228,9 @@ where
     R::Element: Clone + PartialEq,
 {
     fn sub_assign(&mut self, rhs: Poly<R>) {
-        self.fill_with_zeros(rhs.0.len());
-        for (i, elem) in rhs.0.into_iter().enumerate() {
-            self.add_elem_unsafe(R::neg(elem), i);
+        self.fill_with_zeros(rhs.elems.len());
+        for (i, elem) in rhs.elems.into_iter().enumerate() {
+            self.add_elem_unsafe(self.ring.neg(elem), i);
         }
         self.restore_length();
     }
@@ -233,11 +246,11 @@ where
     fn mul(self, rhs: Poly<R>) -> Self::Output {
         let n = self.deg().unwrap_or(0);
         let m = rhs.deg().unwrap_or(0);
-        let mut out = Self::zeros(n + m + 1);
+        let mut out = Self::zeros(self.ring, n + m + 1);
 
-        for (i, a) in self.0.iter().enumerate() {
-            for (j, b) in rhs.0.iter().enumerate() {
-                out.add_elem_unsafe(R::mul(a.clone(), b.clone()), i + j);
+        for (i, a) in self.elems.iter().enumerate() {
+            for (j, b) in rhs.elems.iter().enumerate() {
+                out.add_elem_unsafe(self.ring.mul(a.clone(), b.clone()), i + j);
             }
         }
 
@@ -257,34 +270,13 @@ where
     }
 }
 
-impl<R> FromStr for Poly<R>
-where
-    R: ParsableRing,
-    R::Element: Clone + PartialEq,
-{
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        R::parse_poly(s).ok_or(())
-    }
-}
-
-impl<R> Default for Poly<R>
-where
-    R: Ring,
-{
-    fn default() -> Self {
-        Self::zero()
-    }
-}
-
 impl<R> Clone for Poly<R>
 where
     R: Ring,
     R::Element: Clone,
 {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self::new(self.ring, self.elems.clone())
     }
 }
 
@@ -294,17 +286,17 @@ where
     R::Element: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
+        self.elems == other.elems
     }
 }
 
 impl<R> fmt::Debug for Poly<R>
 where
-    R: Ring,
+    R: Ring + fmt::Debug,
     R::Element: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("Poly").field(&self.0).finish()
+        f.debug_struct("Poly").field("ring", &self.ring).field("elems", &self.elems).finish()
     }
 }
 
@@ -319,17 +311,17 @@ where
     R::Element: SimpleDisplay + PartialEq,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut str = String::with_capacity(self.0.len() * 3);
-        for (i, elem) in self.0.iter().enumerate().rev() {
-            if *elem == R::zero() {
+        let mut str = String::with_capacity(self.elems.len() * 3);
+        for (i, elem) in self.elems.iter().enumerate().rev() {
+            if *elem == self.ring.zero() {
                 continue;
             }
 
-            if i < self.0.len() - 1 {
+            if i < self.elems.len() - 1 {
                 str.push_str(" + ");
             }
 
-            let elem = (*elem != R::one() || i == 0).then_some(elem);
+            let elem = (*elem != self.ring.one() || i == 0).then_some(elem);
             let elem_str = elem.map(|e| format!("{e}")).unwrap_or_default();
 
             let x = match i {
@@ -341,7 +333,7 @@ where
         }
 
         if str.is_empty() {
-            str = format!("{}", R::zero());
+            str = format!("{}", self.ring.zero());
         }
 
         write!(f, "{str}")

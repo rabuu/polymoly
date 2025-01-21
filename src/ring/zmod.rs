@@ -1,51 +1,45 @@
 //! The ring of integers modulo n `Z/nZ`
 
 use super::{Field, Ring};
-use crate::euclid::extended_euclidean_int;
 
 /// The ring of integers modulo n `Z/nZ`
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct ZMod<const N: usize>;
 
 impl<const N: usize> Ring for ZMod<N> {
     type Element = isize;
 
-    fn zero() -> Self::Element {
+    fn zero(&self) -> Self::Element {
         0
     }
 
-    fn one() -> Self::Element {
+    fn one(&self) -> Self::Element {
         1
     }
 
-    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
-        Self::id(lhs + rhs)
+    fn add(&self, lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+        self.id(lhs + rhs)
     }
 
-    fn neg(elem: Self::Element) -> Self::Element {
-        Self::id(-elem)
+    fn neg(&self, elem: Self::Element) -> Self::Element {
+        self.id(-elem)
     }
 
-    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
-        Self::id(lhs * rhs)
+    fn mul(&self, lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+        self.id(lhs * rhs)
     }
 
-    fn id(elem: Self::Element) -> Self::Element {
+    fn id(&self, elem: Self::Element) -> Self::Element {
         elem.rem_euclid(N as isize)
     }
-}
-
-fn inv_mod_n(elem: isize, n: isize) -> Option<isize> {
-    let elem = elem.rem_euclid(n);
-    let (_, s, _) = extended_euclidean_int(elem, n)?;
-    Some(s.rem_euclid(n))
 }
 
 macro_rules! impl_field_for_zmod {
     ($n:expr) => {
         impl Field for ZMod<$n> {
-            fn inv(elem: Self::Element) -> Option<Self::Element> {
-                inv_mod_n(elem, $n)
+            fn inv(&self, elem: Self::Element) -> Option<Self::Element> {
+                let (_, s, _) = crate::euclid::extended_euclidean_int(elem, $n)?;
+                Some(s.rem_euclid($n))
             }
         }
     };

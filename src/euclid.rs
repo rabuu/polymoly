@@ -48,6 +48,7 @@ where
 ///
 /// This will be `None` iff `a` and `b` are 0.
 pub fn extended_euclidean<E>(
+    ring: E,
     a: E::Element,
     b: E::Element,
 ) -> Option<(E::Element, E::Element, E::Element)>
@@ -55,33 +56,33 @@ where
     E: EuclideanRing,
     E::Element: Clone + PartialEq,
 {
-    if a == E::zero() && b == E::zero() {
+    if a == ring.zero() && b == ring.zero() {
         return None;
     }
 
-    if b == E::zero() {
-        return Some((a, E::one(), E::zero()));
+    if b == ring.zero() {
+        return Some((a, ring.one(), ring.zero()));
     }
 
     let (_, rem) = E::euclidean_division(a.clone(), b.clone()).expect("b is non-zero");
-    if rem == E::zero() {
-        return Some((b, E::zero(), E::one()));
+    if rem == ring.zero() {
+        return Some((b, ring.zero(), ring.one()));
     }
 
     let (mut x, mut y) = (a, b);
-    let (mut s1, mut s2) = (E::one(), E::zero());
-    let (mut t1, mut t2) = (E::zero(), E::one());
-    let (mut s, mut t) = (E::zero(), E::zero());
+    let (mut s1, mut s2) = (ring.one(), ring.zero());
+    let (mut t1, mut t2) = (ring.zero(), ring.one());
+    let (mut s, mut t) = (ring.zero(), ring.zero());
 
     loop {
         let (q, r) = E::euclidean_division(x.clone(), y.clone()).expect("y is non-zero");
 
-        if r == E::zero() {
+        if r == ring.zero() {
             break;
         }
 
-        s = E::sub(s1, E::mul(q.clone(), s2.clone()));
-        t = E::sub(t1, E::mul(q, t2.clone()));
+        s = ring.sub(s1, ring.mul(q.clone(), s2.clone()));
+        t = ring.sub(t1, ring.mul(q, t2.clone()));
         s1 = s2;
         s2 = s.clone();
         t1 = t2;

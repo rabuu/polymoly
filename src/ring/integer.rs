@@ -3,29 +3,29 @@
 use super::Ring;
 
 /// The ring of integers `Z`
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Z;
 
 impl Ring for Z {
     type Element = isize;
 
-    fn zero() -> Self::Element {
+    fn zero(&self) -> Self::Element {
         0
     }
 
-    fn one() -> Self::Element {
+    fn one(&self) -> Self::Element {
         1
     }
 
-    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+    fn add(&self, lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs + rhs
     }
 
-    fn neg(elem: Self::Element) -> Self::Element {
+    fn neg(&self, elem: Self::Element) -> Self::Element {
         -elem
     }
 
-    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+    fn mul(&self, lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs * rhs
     }
 }
