@@ -1,5 +1,7 @@
+use std::str::FromStr;
 use std::{fmt, ops};
 
+use crate::parse::ParsableRing;
 use crate::structures::{Field, Ring};
 
 pub struct Poly<R: Ring>(Vec<R::Element>);
@@ -251,6 +253,18 @@ where
     fn mul_assign(&mut self, rhs: Poly<R>) {
         let product = self.clone() * rhs;
         *self = product;
+    }
+}
+
+impl<R> FromStr for Poly<R>
+where
+    R: ParsableRing,
+    R::Element: Clone + PartialEq,
+{
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        R::parse_poly(s).ok_or(())
     }
 }
 
