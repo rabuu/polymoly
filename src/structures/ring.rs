@@ -4,32 +4,32 @@ use super::{PolyRing, ZMod, R, Z};
 
 /// A commutative ring
 pub trait Ring {
-    type T;
+    type Element;
 
-    fn zero() -> Self::T;
-    fn one() -> Self::T;
+    fn zero() -> Self::Element;
+    fn one() -> Self::Element;
 
-    fn add(lhs: Self::T, rhs: Self::T) -> Self::T;
-    fn neg(elem: Self::T) -> Self::T;
-    fn mul(lhs: Self::T, rhs: Self::T) -> Self::T;
+    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element;
+    fn neg(elem: Self::Element) -> Self::Element;
+    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element;
 
-    fn sub(lhs: Self::T, rhs: Self::T) -> Self::T {
+    fn sub(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         Self::add(lhs, Self::neg(rhs))
     }
 
-    fn id(elem: Self::T) -> Self::T {
+    fn id(elem: Self::Element) -> Self::Element {
         elem
     }
 }
 
 impl Ring for R {
-    type T = f64;
+    type Element = f64;
 
-    fn zero() -> Self::T {
+    fn zero() -> Self::Element {
         0.0
     }
 
-    fn one() -> Self::T {
+    fn one() -> Self::Element {
         1.0
     }
 
@@ -47,13 +47,13 @@ impl Ring for R {
 }
 
 impl Ring for Z {
-    type T = isize;
+    type Element = isize;
 
-    fn zero() -> Self::T {
+    fn zero() -> Self::Element {
         0
     }
 
-    fn one() -> Self::T {
+    fn one() -> Self::Element {
         1
     }
 
@@ -71,13 +71,13 @@ impl Ring for Z {
 }
 
 impl<const N: usize> Ring for ZMod<N> {
-    type T = usize;
+    type Element = usize;
 
-    fn zero() -> Self::T {
+    fn zero() -> Self::Element {
         0
     }
 
-    fn one() -> Self::T {
+    fn one() -> Self::Element {
         1
     }
 
@@ -102,27 +102,27 @@ impl<const N: usize> Ring for ZMod<N> {
 impl<R> Ring for PolyRing<R>
 where
     R: Ring,
-    R::T: Clone + PartialEq,
+    R::Element: Clone + PartialEq,
 {
-    type T = Poly<R>;
+    type Element = Poly<R>;
 
-    fn zero() -> Self::T {
+    fn zero() -> Self::Element {
         Poly::default()
     }
 
-    fn one() -> Self::T {
+    fn one() -> Self::Element {
         Poly::constant(R::one())
     }
 
-    fn add(lhs: Self::T, rhs: Self::T) -> Self::T {
+    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs + rhs
     }
 
-    fn neg(elem: Self::T) -> Self::T {
+    fn neg(elem: Self::Element) -> Self::Element {
         -elem
     }
 
-    fn mul(lhs: Self::T, rhs: Self::T) -> Self::T {
+    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs * rhs
     }
 }

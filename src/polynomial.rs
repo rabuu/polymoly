@@ -2,10 +2,10 @@ use std::{fmt, ops};
 
 use crate::structures::{Field, Ring};
 
-pub struct Poly<R: Ring>(Vec<R::T>);
+pub struct Poly<R: Ring>(Vec<R::Element>);
 
 impl<R: Ring> Poly<R> {
-    pub fn new(elems: impl Into<Vec<R::T>>) -> Self {
+    pub fn new(elems: impl Into<Vec<R::Element>>) -> Self {
         let elems = elems.into().into_iter().map(R::id).collect();
         Self(elems)
     }
@@ -16,36 +16,36 @@ impl<R: Ring> Poly<R> {
 
     fn zeros(len: usize) -> Self
     where
-        R::T: Clone,
+        R::Element: Clone,
     {
         Self(vec![R::zero(); len])
     }
 
-    pub fn constant(constant: R::T) -> Self {
+    pub fn constant(constant: R::Element) -> Self {
         Self(vec![R::id(constant)])
     }
 
-    pub fn single(elem: R::T, deg: usize) -> Self
+    pub fn single(elem: R::Element, deg: usize) -> Self
     where
-        R::T: Clone,
+        R::Element: Clone,
     {
         let mut elems = vec![R::zero(); deg + 1];
         elems[deg] = elem;
         Self(elems)
     }
 
-    pub fn add_elem(&mut self, elem: R::T, deg: usize)
+    pub fn add_elem(&mut self, elem: R::Element, deg: usize)
     where
-        R::T: Clone + PartialEq,
+        R::Element: Clone + PartialEq,
     {
         self.fill_with_zeros(deg + 1);
         self.add_elem_unsafe(elem, deg);
         self.restore_length();
     }
 
-    fn add_elem_unsafe(&mut self, elem: R::T, deg: usize)
+    fn add_elem_unsafe(&mut self, elem: R::Element, deg: usize)
     where
-        R::T: Clone,
+        R::Element: Clone,
     {
         self.0[deg] = R::add(self.0[deg].clone(), R::id(elem));
     }
@@ -54,16 +54,16 @@ impl<R: Ring> Poly<R> {
         (!self.0.is_empty()).then_some(self.0.len())
     }
 
-    pub fn lc(&self) -> R::T
+    pub fn lc(&self) -> R::Element
     where
-        R::T: Clone,
+        R::Element: Clone,
     {
         self.0.last().cloned().unwrap_or(R::zero())
     }
 
     pub fn is_zero(&self) -> bool
     where
-        R::T: PartialEq,
+        R::Element: PartialEq,
     {
         self.0.is_empty()
     }
@@ -76,7 +76,7 @@ impl<R: Ring> Poly<R> {
 
     fn restore_length(&mut self)
     where
-        R::T: PartialEq,
+        R::Element: PartialEq,
     {
         for _ in 0..self.0.len() {
             if let Some(elem) = self.0.last() {
@@ -95,7 +95,7 @@ impl<R: Ring> Poly<R> {
 impl<F: Field> Poly<F> {
     pub fn polynomial_division(self, rhs: Poly<F>) -> Option<(Poly<F>, Poly<F>)>
     where
-        F::T: Clone + PartialEq,
+        F::Element: Clone + PartialEq,
     {
         if rhs.is_zero() {
             return None;
@@ -126,7 +126,7 @@ impl<F: Field> Poly<F> {
 impl<R> ops::Add<Poly<R>> for Poly<R>
 where
     R: Ring,
-    R::T: Clone + PartialEq,
+    R::Element: Clone + PartialEq,
 {
     type Output = Poly<R>;
 
@@ -151,7 +151,7 @@ where
 impl<R> ops::AddAssign<Poly<R>> for Poly<R>
 where
     R: Ring,
-    R::T: Clone + PartialEq,
+    R::Element: Clone + PartialEq,
 {
     fn add_assign(&mut self, rhs: Poly<R>) {
         self.fill_with_zeros(rhs.0.len());
@@ -180,7 +180,7 @@ where
 impl<R> ops::Sub<Poly<R>> for Poly<R>
 where
     R: Ring,
-    R::T: Clone + PartialEq,
+    R::Element: Clone + PartialEq,
 {
     type Output = Poly<R>;
 
@@ -205,7 +205,7 @@ where
 impl<R> ops::SubAssign<Poly<R>> for Poly<R>
 where
     R: Ring,
-    R::T: Clone + PartialEq,
+    R::Element: Clone + PartialEq,
 {
     fn sub_assign(&mut self, rhs: Poly<R>) {
         self.fill_with_zeros(rhs.0.len());
@@ -219,7 +219,7 @@ where
 impl<R> ops::Mul<Poly<R>> for Poly<R>
 where
     R: Ring,
-    R::T: Clone + PartialEq,
+    R::Element: Clone + PartialEq,
 {
     type Output = Poly<R>;
 
@@ -242,7 +242,7 @@ where
 impl<R> ops::MulAssign<Poly<R>> for Poly<R>
 where
     R: Ring,
-    R::T: Clone + PartialEq,
+    R::Element: Clone + PartialEq,
 {
     fn mul_assign(&mut self, rhs: Poly<R>) {
         let product = self.clone() * rhs;
@@ -262,7 +262,7 @@ where
 impl<R> Clone for Poly<R>
 where
     R: Ring,
-    R::T: Clone,
+    R::Element: Clone,
 {
     fn clone(&self) -> Self {
         Self(self.0.clone())
@@ -272,7 +272,7 @@ where
 impl<R> PartialEq for Poly<R>
 where
     R: Ring,
-    R::T: PartialEq,
+    R::Element: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
@@ -282,7 +282,7 @@ where
 impl<R> fmt::Debug for Poly<R>
 where
     R: Ring,
-    R::T: fmt::Debug,
+    R::Element: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("Poly").field(&self.0).finish()
@@ -297,7 +297,7 @@ impl SimpleDisplay for usize {}
 impl<R> fmt::Display for Poly<R>
 where
     R: Ring,
-    R::T: SimpleDisplay + PartialEq,
+    R::Element: SimpleDisplay + PartialEq,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut str = String::with_capacity(self.0.len() * 3);

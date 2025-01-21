@@ -1,16 +1,16 @@
 use crate::structures::{Field, PolyRing, Ring, Z};
 
 pub trait EuclideanRing: Ring {
-    fn euclidean_function(elem: Self::T) -> Option<usize>;
-    fn euclidean_division(a: Self::T, b: Self::T) -> Option<(Self::T, Self::T)>;
+    fn euclidean_function(elem: Self::Element) -> Option<usize>;
+    fn euclidean_division(a: Self::Element, b: Self::Element) -> Option<(Self::Element, Self::Element)>;
 }
 
 impl EuclideanRing for Z {
-    fn euclidean_function(elem: Self::T) -> Option<usize> {
+    fn euclidean_function(elem: Self::Element) -> Option<usize> {
         Some(elem.unsigned_abs())
     }
 
-    fn euclidean_division(a: Self::T, b: Self::T) -> Option<(Self::T, Self::T)> {
+    fn euclidean_division(a: Self::Element, b: Self::Element) -> Option<(Self::Element, Self::Element)> {
         (b != 0).then_some((a.div_euclid(b), a.rem_euclid(b)))
     }
 }
@@ -18,21 +18,21 @@ impl EuclideanRing for Z {
 impl<F> EuclideanRing for PolyRing<F>
 where
     F: Field,
-    F::T: Clone + PartialEq,
+    F::Element: Clone + PartialEq,
 {
-    fn euclidean_function(elem: Self::T) -> Option<usize> {
+    fn euclidean_function(elem: Self::Element) -> Option<usize> {
         elem.deg()
     }
 
-    fn euclidean_division(a: Self::T, b: Self::T) -> Option<(Self::T, Self::T)> {
+    fn euclidean_division(a: Self::Element, b: Self::Element) -> Option<(Self::Element, Self::Element)> {
         a.polynomial_division(b)
     }
 }
 
-pub fn extended_euclidean<E>(a: E::T, b: E::T) -> Option<(E::T, E::T, E::T)>
+pub fn extended_euclidean<E>(a: E::Element, b: E::Element) -> Option<(E::Element, E::Element, E::Element)>
 where
     E: EuclideanRing,
-    E::T: Clone + PartialEq,
+    E::Element: Clone + PartialEq,
 {
     if a == E::zero() && b == E::zero() {
         return None;

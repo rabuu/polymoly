@@ -4,9 +4,9 @@ use super::Ring;
 use super::{ZMod, R};
 
 pub trait Field: Ring {
-    fn inv(elem: Self::T) -> Option<Self::T>;
+    fn inv(elem: Self::Element) -> Option<Self::Element>;
 
-    fn div(lhs: Self::T, rhs: Self::T) -> Option<Self::T> {
+    fn div(lhs: Self::Element, rhs: Self::Element) -> Option<Self::Element> {
         Self::inv(rhs).map(|inv| Self::mul(lhs, inv))
     }
 }
