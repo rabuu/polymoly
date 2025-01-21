@@ -33,15 +33,15 @@ impl Ring for R {
         1.0
     }
 
-    fn add(lhs: f64, rhs: f64) -> f64 {
+    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs + rhs
     }
 
-    fn neg(elem: f64) -> f64 {
+    fn neg(elem: Self::Element) -> Self::Element {
         -elem
     }
 
-    fn mul(lhs: f64, rhs: f64) -> f64 {
+    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs * rhs
     }
 }
@@ -57,21 +57,21 @@ impl Ring for Z {
         1
     }
 
-    fn add(lhs: isize, rhs: isize) -> isize {
+    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs + rhs
     }
 
-    fn neg(elem: isize) -> isize {
+    fn neg(elem: Self::Element) -> Self::Element {
         -elem
     }
 
-    fn mul(lhs: isize, rhs: isize) -> isize {
+    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
         lhs * rhs
     }
 }
 
 impl<const N: usize> Ring for ZMod<N> {
-    type Element = usize;
+    type Element = isize;
 
     fn zero() -> Self::Element {
         0
@@ -81,21 +81,20 @@ impl<const N: usize> Ring for ZMod<N> {
         1
     }
 
-    fn add(lhs: usize, rhs: usize) -> usize {
-        (lhs + rhs) % N
+    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+        Self::id(lhs + rhs)
     }
 
-    fn neg(elem: usize) -> usize {
-        let negative: isize = -(elem as isize);
-        (negative.rem_euclid(N as isize)) as usize
+    fn neg(elem: Self::Element) -> Self::Element {
+        Self::id(-elem)
     }
 
-    fn mul(lhs: usize, rhs: usize) -> usize {
-        (lhs * rhs) % N
+    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+        Self::id(lhs * rhs)
     }
 
-    fn id(elem: usize) -> usize {
-        elem % N
+    fn id(elem: Self::Element) -> Self::Element {
+        elem.rem_euclid(N as isize)
     }
 }
 

@@ -12,26 +12,31 @@ pub trait Field: Ring {
 }
 
 impl Field for R {
-    fn inv(elem: f64) -> Option<f64> {
+    fn inv(elem: Self::Element) -> Option<Self::Element> {
         (elem != 0.0).then_some(1.0 / elem)
     }
 }
 
-fn inv_mod_n(elem: usize, n: usize) -> Option<usize> {
-    let elem = elem % n;
-    let (_, s, _) = extended_euclidean_int(elem as isize, n as isize)?;
-    Some(s.rem_euclid(n as isize) as usize)
+fn inv_mod_n(elem: isize, n: isize) -> Option<isize> {
+    let elem = elem.rem_euclid(n);
+    let (_, s, _) = extended_euclidean_int(elem, n)?;
+    Some(s.rem_euclid(n))
 }
 
 macro_rules! impl_field_for_zmod {
     ($n:expr) => {
         impl Field for ZMod<$n> {
-            fn inv(elem: usize) -> Option<usize> {
+            fn inv(elem: Self::Element) -> Option<Self::Element> {
                 inv_mod_n(elem, $n)
             }
         }
     };
 }
+
+pub const IMPLEMENTED_PRIMES: [usize; 32] = [
+    2, 3, 5, 7, 9, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89,
+    97, 101, 103, 107, 109, 113, 127,
+];
 
 impl_field_for_zmod!(2);
 impl_field_for_zmod!(3);
@@ -60,3 +65,8 @@ impl_field_for_zmod!(83);
 impl_field_for_zmod!(89);
 impl_field_for_zmod!(97);
 impl_field_for_zmod!(101);
+impl_field_for_zmod!(103);
+impl_field_for_zmod!(107);
+impl_field_for_zmod!(109);
+impl_field_for_zmod!(113);
+impl_field_for_zmod!(127);
