@@ -1,6 +1,9 @@
+//! The ring of integers modulo n `Z/nZ`
+
 use super::{Field, Ring};
 use crate::euclid::extended_euclidean_int;
 
+/// The ring of integers modulo n `Z/nZ`
 #[derive(Debug)]
 pub struct ZMod<const N: usize>;
 
@@ -48,6 +51,7 @@ macro_rules! impl_field_for_zmod {
     };
 }
 
+/// The primes which are automatically implemented (2 - 127)
 pub const IMPLEMENTED_PRIMES: [usize; 32] = [
     2, 3, 5, 7, 9, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89,
     97, 101, 103, 107, 109, 113, 127,

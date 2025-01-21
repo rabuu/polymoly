@@ -1,3 +1,6 @@
+//! # PolyMoly
+//! A library for polynomials over abstract rings.
+
 pub mod euclid;
 mod parse;
 mod polynomial;

@@ -1,5 +1,8 @@
+//! Implementation of the (extended) euclidean algorithm
+
 use crate::{Field, PolyRing, Ring, Z};
 
+/// A integral domain that has a well-defined euclidean division
 pub trait EuclideanRing: Ring {
     fn euclidean_function(elem: Self::Element) -> Option<usize>;
     fn euclidean_division(
@@ -38,6 +41,12 @@ where
     }
 }
 
+/// Generalized extended euclidean algorithm (EEA)
+///
+/// This will compute an `Option<(gcd, s, t)>` so that `gcd` is the greatest common divisor of `a`
+/// and `b` and the equation `(s * a) + (t * a) = gcd` holds.
+///
+/// This will be `None` iff `a` and `b` are 0.
 pub fn extended_euclidean<E>(
     a: E::Element,
     b: E::Element,
@@ -85,6 +94,9 @@ where
     Some((y, s, t))
 }
 
+/// Extended euclidean algorithm for integers
+///
+/// This should be the same as [extended_euclidean] over [Z].
 pub fn extended_euclidean_int(a: isize, b: isize) -> Option<(usize, isize, isize)> {
     if a == 0 && b == 0 {
         return None;

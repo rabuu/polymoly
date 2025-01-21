@@ -1,9 +1,11 @@
+//! Abstract algebraic rings
+
 pub mod integer;
 pub mod poly_ring;
 pub mod real;
 pub mod zmod;
 
-/// A commutative ring
+/// An algebraic commutative ring
 pub trait Ring {
     type Element;
 
@@ -23,6 +25,7 @@ pub trait Ring {
     }
 }
 
+/// An algebraic field
 pub trait Field: Ring {
     fn inv(elem: Self::Element) -> Option<Self::Element>;
 

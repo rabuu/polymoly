@@ -1,5 +1,8 @@
+//! The ring of integers `Z`
+
 use super::Ring;
 
+/// The ring of integers `Z`
 #[derive(Debug)]
 pub struct Z;
 

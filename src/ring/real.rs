@@ -1,5 +1,8 @@
+//! The ring of real numbers `R`
+
 use super::{Field, Ring};
 
+/// The ring of real numbers `R`
 #[derive(Debug)]
 pub struct R;
 

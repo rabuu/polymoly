@@ -4,6 +4,7 @@ use std::{fmt, ops};
 use crate::parse::ParsableRing;
 use crate::ring::{Field, Ring};
 
+/// A polynomial over the ring `R`
 pub struct Poly<R: Ring>(Vec<R::Element>);
 
 impl<R: Ring> Poly<R> {

@@ -1,8 +1,11 @@
+//! The ring of polynomials `R[x]`
+
 use std::marker::PhantomData;
 
 use super::Ring;
 use crate::Poly;
 
+/// The ring of polynomials `R[x]` where `R` is another ring
 #[derive(Debug)]
 pub struct PolyRing<R: Ring>(PhantomData<R>);
 
