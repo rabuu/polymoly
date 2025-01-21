@@ -2,7 +2,7 @@ use std::str::FromStr;
 use std::{fmt, ops};
 
 use crate::parse::ParsableRing;
-use crate::structures::{Field, Ring};
+use crate::ring::{Field, Ring};
 
 pub struct Poly<R: Ring>(Vec<R::Element>);
 

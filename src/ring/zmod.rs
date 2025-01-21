@@ -1,19 +1,34 @@
+use super::{Field, Ring};
 use crate::euclid::extended_euclidean_int;
 
-use super::Ring;
-use super::{ZMod, R};
+#[derive(Debug)]
+pub struct ZMod<const N: usize>;
 
-pub trait Field: Ring {
-    fn inv(elem: Self::Element) -> Option<Self::Element>;
+impl<const N: usize> Ring for ZMod<N> {
+    type Element = isize;
 
-    fn div(lhs: Self::Element, rhs: Self::Element) -> Option<Self::Element> {
-        Self::inv(rhs).map(|inv| Self::mul(lhs, inv))
+    fn zero() -> Self::Element {
+        0
     }
-}
 
-impl Field for R {
-    fn inv(elem: Self::Element) -> Option<Self::Element> {
-        (elem != 0.0).then_some(1.0 / elem)
+    fn one() -> Self::Element {
+        1
+    }
+
+    fn add(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+        Self::id(lhs + rhs)
+    }
+
+    fn neg(elem: Self::Element) -> Self::Element {
+        Self::id(-elem)
+    }
+
+    fn mul(lhs: Self::Element, rhs: Self::Element) -> Self::Element {
+        Self::id(lhs * rhs)
+    }
+
+    fn id(elem: Self::Element) -> Self::Element {
+        elem.rem_euclid(N as isize)
     }
 }
 

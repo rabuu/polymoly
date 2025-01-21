@@ -1,5 +1,4 @@
-use crate::structures::{Ring, ZMod, R, Z};
-use crate::Poly;
+use crate::{Poly, Ring, ZMod, R, Z};
 
 pub trait ParsableRing: Ring {
     fn parse_elem(input: &str) -> Option<Self::Element>;

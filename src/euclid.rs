@@ -1,8 +1,11 @@
-use crate::structures::{Field, PolyRing, Ring, Z};
+use crate::{Field, PolyRing, Ring, Z};
 
 pub trait EuclideanRing: Ring {
     fn euclidean_function(elem: Self::Element) -> Option<usize>;
-    fn euclidean_division(a: Self::Element, b: Self::Element) -> Option<(Self::Element, Self::Element)>;
+    fn euclidean_division(
+        a: Self::Element,
+        b: Self::Element,
+    ) -> Option<(Self::Element, Self::Element)>;
 }
 
 impl EuclideanRing for Z {
@@ -10,7 +13,10 @@ impl EuclideanRing for Z {
         Some(elem.unsigned_abs())
     }
 
-    fn euclidean_division(a: Self::Element, b: Self::Element) -> Option<(Self::Element, Self::Element)> {
+    fn euclidean_division(
+        a: Self::Element,
+        b: Self::Element,
+    ) -> Option<(Self::Element, Self::Element)> {
         (b != 0).then_some((a.div_euclid(b), a.rem_euclid(b)))
     }
 }
@@ -24,12 +30,18 @@ where
         elem.deg()
     }
 
-    fn euclidean_division(a: Self::Element, b: Self::Element) -> Option<(Self::Element, Self::Element)> {
+    fn euclidean_division(
+        a: Self::Element,
+        b: Self::Element,
+    ) -> Option<(Self::Element, Self::Element)> {
         a.polynomial_division(b)
     }
 }
 
-pub fn extended_euclidean<E>(a: E::Element, b: E::Element) -> Option<(E::Element, E::Element, E::Element)>
+pub fn extended_euclidean<E>(
+    a: E::Element,
+    b: E::Element,
+) -> Option<(E::Element, E::Element, E::Element)>
 where
     E: EuclideanRing,
     E::Element: Clone + PartialEq,

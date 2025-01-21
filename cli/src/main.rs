@@ -1,4 +1,4 @@
-use polymoly::structures::{ZMod, R, Z};
+use polymoly::ring::{ZMod, R, Z};
 use polymoly::Poly;
 
 fn main() {
