@@ -107,7 +107,7 @@ where
     type Element = Poly<R>;
 
     fn zero() -> Self::Element {
-        Poly::default()
+        Poly::zero()
     }
 
     fn one() -> Self::Element {

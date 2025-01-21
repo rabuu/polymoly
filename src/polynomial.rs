@@ -14,6 +14,10 @@ impl<R: Ring> Poly<R> {
         Self(Vec::with_capacity(capacity))
     }
 
+    pub fn zero() -> Self {
+        Self(vec![])
+    }
+
     fn zeros(len: usize) -> Self
     where
         R::Element: Clone,
@@ -255,7 +259,7 @@ where
     R: Ring,
 {
     fn default() -> Self {
-        Self(Vec::new())
+        Self::zero()
     }
 }
 
