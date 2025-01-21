@@ -1,12 +1,78 @@
-//! The ring of integers modulo n `Z/nZ`
+//! The ring of integers modulo `n` `Z/nZ`
+
+use std::fmt;
 
 use super::{Field, Ring};
 
-/// The ring of integers modulo n `Z/nZ`
-#[derive(Debug, Clone, Copy)]
-pub struct ZMod<const N: usize>;
+pub(crate) trait ZMod: Copy {
+    fn n(&self) -> usize;
+}
 
-impl<const N: usize> Ring for ZMod<N> {
+/// The ring of integers modulo `n` `Z/nZ`
+#[derive(Clone, Copy)]
+pub struct ZModN {
+    n: usize,
+}
+
+impl ZModN {
+    pub fn new(n: usize) -> Self {
+        Self { n }
+    }
+}
+
+impl ZMod for ZModN {
+    fn n(&self) -> usize {
+        self.n
+    }
+}
+
+/// The field of integers modulo `p` where `p` is prime `Z/pZ`
+#[derive(Clone, Copy)]
+pub struct ZModP {
+    p: usize,
+}
+
+impl ZModP {
+    /// Construct the `Z/pZ` where `p` *must* be prime
+    pub fn new(p: usize) -> Self {
+        Self { p }
+    }
+
+    /// Construct the `Z/pZ` and check if `p` is prime
+    ///
+    /// Return `None` if `p` is not prime
+    pub fn checked_new(p: usize) -> Option<Self> {
+        if p <= 1 {
+            return None;
+        }
+
+        if p == 2 || p == 3 {
+            return Some(Self::new(p));
+        }
+
+        if p % 2 == 0 || p % 3 == 0 {
+            return None;
+        }
+
+        let sqrt = (p as f32).sqrt().ceil() as usize;
+        for i in (5..=sqrt).step_by(6) {
+            if p % i == 0 || p % (i + 2) == 0 {
+                return None;
+            }
+        }
+
+        Some(Self::new(p))
+    }
+}
+
+impl ZMod for ZModP {
+    fn n(&self) -> usize {
+        self.p
+    }
+}
+
+
+impl<T: ZMod> Ring for T {
     type Element = isize;
 
     fn zero(&self) -> Self::Element {
@@ -30,56 +96,65 @@ impl<const N: usize> Ring for ZMod<N> {
     }
 
     fn id(&self, elem: Self::Element) -> Self::Element {
-        elem.rem_euclid(N as isize)
+        elem.rem_euclid(self.n() as isize)
     }
 }
 
-macro_rules! impl_field_for_zmod {
-    ($n:expr) => {
-        impl Field for ZMod<$n> {
-            fn inv(&self, elem: Self::Element) -> Option<Self::Element> {
-                let (_, s, _) = crate::euclid::extended_euclidean_int(elem, $n)?;
-                Some(s.rem_euclid($n))
-            }
-        }
-    };
+impl Field for ZModP {
+    fn inv(&self, elem: Self::Element) -> Option<Self::Element> {
+        let (_, s, _) = crate::euclid::extended_euclidean_int(elem, self.p as isize)?;
+        Some(s.rem_euclid(self.p as isize))
+    }
 }
 
-/// The primes which are automatically implemented (2 - 127)
-pub const IMPLEMENTED_PRIMES: [usize; 32] = [
-    2, 3, 5, 7, 9, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89,
-    97, 101, 103, 107, 109, 113, 127,
-];
+impl fmt::Debug for ZModN {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Z/{}Z", self.n)
+    }
+}
 
-impl_field_for_zmod!(2);
-impl_field_for_zmod!(3);
-impl_field_for_zmod!(5);
-impl_field_for_zmod!(7);
-impl_field_for_zmod!(9);
-impl_field_for_zmod!(11);
-impl_field_for_zmod!(13);
-impl_field_for_zmod!(17);
-impl_field_for_zmod!(19);
-impl_field_for_zmod!(23);
-impl_field_for_zmod!(29);
-impl_field_for_zmod!(31);
-impl_field_for_zmod!(37);
-impl_field_for_zmod!(41);
-impl_field_for_zmod!(43);
-impl_field_for_zmod!(47);
-impl_field_for_zmod!(53);
-impl_field_for_zmod!(59);
-impl_field_for_zmod!(61);
-impl_field_for_zmod!(67);
-impl_field_for_zmod!(71);
-impl_field_for_zmod!(73);
-impl_field_for_zmod!(79);
-impl_field_for_zmod!(83);
-impl_field_for_zmod!(89);
-impl_field_for_zmod!(97);
-impl_field_for_zmod!(101);
-impl_field_for_zmod!(103);
-impl_field_for_zmod!(107);
-impl_field_for_zmod!(109);
-impl_field_for_zmod!(113);
-impl_field_for_zmod!(127);
+impl fmt::Debug for ZModP {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Z/{}Z", self.p)
+    }
+}
+
+impl fmt::Display for ZModN {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl fmt::Display for ZModP {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn prime_detection() {
+        assert!(ZModP::checked_new(0).is_none());
+        assert!(ZModP::checked_new(1).is_none());
+        assert!(ZModP::checked_new(4).is_none());
+        assert!(ZModP::checked_new(6).is_none());
+        assert!(ZModP::checked_new(8).is_none());
+        assert!(ZModP::checked_new(9).is_none());
+        assert!(ZModP::checked_new(333).is_none());
+        assert!(ZModP::checked_new(7909).is_none());
+
+        assert!(ZModP::checked_new(2).is_some());
+        assert!(ZModP::checked_new(3).is_some());
+        assert!(ZModP::checked_new(5).is_some());
+        assert!(ZModP::checked_new(7).is_some());
+        assert!(ZModP::checked_new(11).is_some());
+        assert!(ZModP::checked_new(13).is_some());
+        assert!(ZModP::checked_new(19).is_some());
+        assert!(ZModP::checked_new(43).is_some());
+        assert!(ZModP::checked_new(127).is_some());
+        assert!(ZModP::checked_new(7793).is_some());
+    }
+}

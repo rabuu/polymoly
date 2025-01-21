@@ -1,4 +1,5 @@
-use crate::{Poly, Ring, ZMod, R, Z};
+use crate::ring::zmod::ZMod;
+use crate::{Poly, Ring, ZModN, ZModP, R, Z};
 
 pub trait ParsableRing: Ring {
     fn parse_elem(&self, input: &str) -> Option<Self::Element>;
@@ -47,7 +48,7 @@ impl ParsableRing for Z {
     }
 }
 
-impl<const N: usize> ParsableRing for ZMod<N> {
+impl<T: ZMod> ParsableRing for T {
     fn parse_elem(&self, input: &str) -> Option<Self::Element> {
         input.parse().ok().map(|e| self.id(e))
     }
