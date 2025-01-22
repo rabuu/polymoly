@@ -274,8 +274,12 @@ where
     type Output = Poly<R>;
 
     fn mul(self, rhs: Poly<R>) -> Self::Output {
-        let n = self.deg().unwrap_or(0);
-        let m = rhs.deg().unwrap_or(0);
+        if self.is_zero() || rhs.is_zero() {
+            return Poly::zero(self.ring);
+        }
+
+        let n = self.deg().unwrap();
+        let m = rhs.deg().unwrap();
         let mut out = Self::zeros(self.ring, n + m + 1);
 
         for (i, a) in self.elems.iter().enumerate() {
