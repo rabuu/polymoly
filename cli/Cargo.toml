@@ -9,4 +9,5 @@ name = "polymoly"
 path = "src/main.rs"
 
 [dependencies]
+clap = { version = "4.5.27", features = ["derive"] }
 polymoly = { path = ".."}
