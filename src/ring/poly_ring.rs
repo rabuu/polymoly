@@ -9,6 +9,12 @@ pub struct PolyRing<R: Ring> {
     ring: R,
 }
 
+impl<R: Ring> PolyRing<R> {
+    pub fn new(ring: R) -> Self {
+        Self { ring }
+    }
+}
+
 impl<R> Ring for PolyRing<R>
 where
     R: Ring,
