@@ -165,7 +165,8 @@ where
     let result = polynomials
         .iter()
         .map(|s| parse_polynomial(ring, s))
-        .fold(Poly::zero(ring), |acc, p| acc + p);
+        .reduce(|acc, p| acc + p)
+        .expect("at least two polynomials");
 
     println!("{result}");
 }
@@ -189,7 +190,8 @@ where
     let result = polynomials
         .iter()
         .map(|s| parse_polynomial(ring, s))
-        .fold(Poly::zero(ring), |acc, p| acc * p);
+        .reduce(|acc, p| acc * p)
+        .expect("at least two polynomials");
 
     println!("{result}");
 }
