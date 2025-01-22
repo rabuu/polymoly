@@ -6,7 +6,7 @@ pub mod real;
 pub mod zmod;
 
 /// An algebraic commutative ring
-pub trait Ring: Copy {
+pub trait Ring: Copy + std::fmt::Debug {
     type Element;
 
     fn zero(&self) -> Self::Element;

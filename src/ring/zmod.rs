@@ -4,7 +4,7 @@ use std::fmt;
 
 use super::{Field, Ring};
 
-pub(crate) trait ZMod: Copy {
+pub(crate) trait ZMod: Copy + fmt::Debug {
     fn n(&self) -> usize;
 }
 
