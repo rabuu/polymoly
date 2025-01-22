@@ -1,7 +1,9 @@
 //! Parsing of polynomials
 
 use crate::ring::zmod::ZMod;
-use crate::{Poly, Ring, R, Z};
+use crate::{Ring, R, Z};
+
+use super::Poly;
 
 /// A ring where polynomials can be parsed
 pub trait ParsableRing: Ring {
@@ -62,9 +64,3 @@ impl<T: ZMod> ParsableRing for T {
         input.parse().ok().map(|e| self.id(e))
     }
 }
-
-/// A ring where polynomials can be displayed
-pub trait DisplayRing: Ring {}
-impl DisplayRing for R {}
-impl DisplayRing for Z {}
-impl<T: ZMod> DisplayRing for T {}

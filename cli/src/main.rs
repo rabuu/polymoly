@@ -2,7 +2,7 @@ use std::fmt;
 
 use clap::{error::ErrorKind, ArgGroup, CommandFactory, Parser, Subcommand};
 
-use polymoly::parse::{DisplayRing, ParsableRing};
+use polymoly::poly::{display::DisplayRing, parse::ParsableRing};
 use polymoly::{Poly, ZModN, ZModP, R, Z};
 
 #[derive(Parser)]

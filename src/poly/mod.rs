@@ -1,7 +1,12 @@
-use std::{fmt, ops};
+//! Polynomials over rings
 
-use crate::parse::{DisplayRing, ParsableRing};
+pub mod display;
+pub mod parse;
+
+use std::ops;
+
 use crate::ring::{Field, Ring};
+use parse::ParsableRing;
 
 /// A polynomial over the ring `R`
 pub struct Poly<R: Ring> {
@@ -287,50 +292,5 @@ where
 {
     fn eq(&self, other: &Self) -> bool {
         self.elems == other.elems
-    }
-}
-
-impl<R> fmt::Debug for Poly<R>
-where
-    R: Ring + fmt::Debug,
-    R::Element: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Poly").field("ring", &self.ring).field("elems", &self.elems).finish()
-    }
-}
-
-impl<R> fmt::Display for Poly<R>
-where
-    R: DisplayRing,
-    R::Element: PartialEq + fmt::Display,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut str = String::with_capacity(self.elems.len() * 3);
-        for (i, elem) in self.elems.iter().enumerate().rev() {
-            if *elem == self.ring.zero() {
-                continue;
-            }
-
-            if i < self.elems.len() - 1 {
-                str.push_str(" + ");
-            }
-
-            let elem = (*elem != self.ring.one() || i == 0).then_some(elem);
-            let elem_str = elem.map(|e| format!("{e}")).unwrap_or_default();
-
-            let x = match i {
-                0 => "".to_string(),
-                1 => "x".to_string(),
-                _ => format!("x^{i}"),
-            };
-            str.push_str(&format!("{elem_str}{x}"));
-        }
-
-        if str.is_empty() {
-            str = format!("{}", self.ring.zero());
-        }
-
-        write!(f, "{str}")
     }
 }

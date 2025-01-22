@@ -71,7 +71,6 @@ impl ZMod for ZModP {
     }
 }
 
-
 impl<T: ZMod> Ring for T {
     type Element = isize;
 
