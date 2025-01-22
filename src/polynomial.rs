@@ -1,6 +1,6 @@
 use std::{fmt, ops};
 
-use crate::parse::ParsableRing;
+use crate::parse::{DisplayRing, ParsableRing};
 use crate::ring::{Field, Ring};
 
 /// A polynomial over the ring `R`
@@ -300,15 +300,10 @@ where
     }
 }
 
-trait SimpleDisplay: fmt::Display {}
-impl SimpleDisplay for f64 {}
-impl SimpleDisplay for isize {}
-impl SimpleDisplay for usize {}
-
 impl<R> fmt::Display for Poly<R>
 where
-    R: Ring,
-    R::Element: SimpleDisplay + PartialEq,
+    R: DisplayRing,
+    R::Element: PartialEq + fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut str = String::with_capacity(self.elems.len() * 3);

@@ -59,3 +59,8 @@ impl<T: ZMod> ParsableRing for T {
         input.parse().ok().map(|e| self.id(e))
     }
 }
+
+pub trait DisplayRing: Ring {}
+impl DisplayRing for R {}
+impl DisplayRing for Z {}
+impl<T: ZMod> DisplayRing for T {}

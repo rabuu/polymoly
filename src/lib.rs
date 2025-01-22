@@ -2,7 +2,7 @@
 //! A library for polynomials over abstract rings.
 
 pub mod euclid;
-mod parse;
+pub mod parse;
 mod polynomial;
 pub mod ring;
 
