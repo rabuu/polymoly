@@ -1,5 +1,5 @@
 use crate::ring::zmod::ZMod;
-use crate::{Poly, Ring, ZModN, ZModP, R, Z};
+use crate::{Poly, Ring, R, Z};
 
 pub trait ParsableRing: Ring {
     fn parse_elem(&self, input: &str) -> Option<Self::Element>;
@@ -20,7 +20,13 @@ pub trait ParsableRing: Ring {
                     (pot.is_empty()).then_some(1)
                 };
 
-                if let (Some(coeff), Some(pot)) = (self.parse_elem(coeff), pot) {
+                let coeff = if coeff.is_empty() {
+                    Some(self.one())
+                } else {
+                    self.parse_elem(coeff)
+                };
+
+                if let (Some(coeff), Some(pot)) = (coeff, pot) {
                     poly.add_elem(coeff, pot);
                     continue;
                 }
