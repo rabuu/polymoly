@@ -15,37 +15,62 @@ pub struct Poly<R: Ring> {
 }
 
 impl<R: Ring> Poly<R> {
-    pub fn new(ring: R, elems: impl Into<Vec<R::Element>>) -> Self {
+    pub fn new(ring: R, elems: impl Into<Vec<R::Element>>) -> Self
+    where
+        R::Element: PartialEq,
+    {
         let elems = elems.into().into_iter().map(|e| ring.id(e)).collect();
-        Self { ring, elems }
+        let mut ret = Self { ring, elems };
+        ret.cut_trailing_zeros();
+
+        ret
     }
 
     pub fn with_capacity(ring: R, capacity: usize) -> Self {
-        Self::new(ring, Vec::with_capacity(capacity))
+        Self {
+            ring,
+            elems: Vec::with_capacity(capacity),
+        }
     }
 
     pub fn zero(ring: R) -> Self {
-        Self::new(ring, vec![])
+        Self {
+            ring,
+            elems: vec![],
+        }
     }
 
     fn zeros(ring: R, len: usize) -> Self
     where
         R::Element: Clone,
     {
-        Self::new(ring, vec![ring.zero(); len])
+        Self {
+            ring,
+            elems: vec![ring.zero(); len],
+        }
     }
 
-    pub fn constant(ring: R, constant: R::Element) -> Self {
-        Self::new(ring, vec![ring.id(constant)])
+    pub fn constant(ring: R, constant: R::Element) -> Self
+    where
+        R::Element: PartialEq,
+    {
+        let mut ret = Self::new(ring, vec![ring.id(constant)]);
+        ret.cut_trailing_zeros();
+
+        ret
     }
 
     pub fn single(ring: R, elem: R::Element, deg: usize) -> Self
     where
-        R::Element: Clone,
+        R::Element: Clone + PartialEq,
     {
         let mut elems = vec![ring.zero(); deg + 1];
         elems[deg] = elem;
-        Self::new(ring, elems)
+
+        let mut ret = Self::new(ring, elems);
+        ret.cut_trailing_zeros();
+
+        ret
     }
 
     pub fn parse(ring: R, input: &str) -> Option<Self>
@@ -62,7 +87,7 @@ impl<R: Ring> Poly<R> {
     {
         self.fill_with_zeros(deg + 1);
         self.add_elem_unsafe(elem, deg);
-        self.restore_length();
+        self.cut_trailing_zeros();
     }
 
     fn add_elem_unsafe(&mut self, elem: R::Element, deg: usize)
@@ -73,7 +98,7 @@ impl<R: Ring> Poly<R> {
     }
 
     pub fn deg(&self) -> Option<usize> {
-        (!self.elems.is_empty()).then_some(self.elems.len() - 1)
+        (!self.elems.is_empty()).then(|| self.elems.len() - 1)
     }
 
     pub fn lc(&self) -> R::Element
@@ -96,7 +121,7 @@ impl<R: Ring> Poly<R> {
         }
     }
 
-    fn restore_length(&mut self)
+    fn cut_trailing_zeros(&mut self)
     where
         R::Element: PartialEq,
     {
@@ -166,7 +191,7 @@ where
             out.add_elem_unsafe(elem, i);
         }
 
-        out.restore_length();
+        out.cut_trailing_zeros();
         out
     }
 }
@@ -181,7 +206,7 @@ where
         for (i, elem) in rhs.elems.into_iter().enumerate() {
             self.add_elem_unsafe(elem, i);
         }
-        self.restore_length();
+        self.cut_trailing_zeros();
     }
 }
 
@@ -222,7 +247,7 @@ where
             out.add_elem_unsafe(ring.neg(elem), i);
         }
 
-        out.restore_length();
+        out.cut_trailing_zeros();
         out
     }
 }
@@ -237,7 +262,7 @@ where
         for (i, elem) in rhs.elems.into_iter().enumerate() {
             self.add_elem_unsafe(self.ring.neg(elem), i);
         }
-        self.restore_length();
+        self.cut_trailing_zeros();
     }
 }
 
@@ -259,7 +284,7 @@ where
             }
         }
 
-        out.restore_length();
+        out.cut_trailing_zeros();
         out
     }
 }
@@ -281,7 +306,10 @@ where
     R::Element: Clone,
 {
     fn clone(&self) -> Self {
-        Self::new(self.ring, self.elems.clone())
+        Self {
+            ring: self.ring,
+            elems: self.elems.clone(),
+        }
     }
 }
 
@@ -292,5 +320,26 @@ where
 {
     fn eq(&self, other: &Self) -> bool {
         self.elems == other.elems
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Z;
+
+    #[test]
+    fn degree() {
+        assert_eq!(Poly::zero(Z).deg(), None);
+        assert_eq!(Poly::constant(Z, 42).deg(), Some(0));
+
+        for i in 0..3 {
+            assert_eq!(Poly::single(Z, 42, i).deg(), Some(i));
+        }
+
+        assert_eq!(Poly::single(Z, 0, 9).deg(), None);
+
+        let product = Poly::single(Z, 2, 2) * Poly::single(Z, 3, 3);
+        assert_eq!(product.deg(), Some(5));
     }
 }

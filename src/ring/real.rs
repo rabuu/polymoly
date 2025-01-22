@@ -32,6 +32,6 @@ impl Ring for R {
 
 impl Field for R {
     fn inv(&self, elem: Self::Element) -> Option<Self::Element> {
-        (elem != 0.0).then_some(1.0 / elem)
+        (elem != 0.0).then(|| 1.0 / elem)
     }
 }

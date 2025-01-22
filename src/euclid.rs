@@ -20,7 +20,7 @@ impl EuclideanRing for Z {
         a: Self::Element,
         b: Self::Element,
     ) -> Option<(Self::Element, Self::Element)> {
-        (b != 0).then_some((a.div_euclid(b), a.rem_euclid(b)))
+        (b != 0).then(|| (a.div_euclid(b), a.rem_euclid(b)))
     }
 }
 
