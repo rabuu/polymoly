@@ -4,7 +4,7 @@ use clap::ArgGroup;
 use clap::{error::ErrorKind, Args, CommandFactory, Parser, Subcommand};
 
 use polymoly::poly::{display::DisplayRing, parse::ParsableRing};
-use polymoly::{Field, Poly, ZModN, ZModP, R, Z};
+use polymoly::{Field, Poly, PolyRing, ZModN, ZModP, R, Z};
 
 #[derive(Parser)]
 #[command(version, propagate_version = true, about = None, long_about = None)]
@@ -56,6 +56,18 @@ enum Operation {
         lhs: String,
 
         /// Right-hand side polynomial
+        rhs: String,
+    },
+
+    /// Greatest common divisor (using EEA) in a euclidean ring
+    Gcd {
+        #[command(flatten)]
+        ring: EuclideanRingArg,
+
+        /// Left-hand side
+        lhs: String,
+
+        /// Right-hand side
         rhs: String,
     },
 }
@@ -136,6 +148,58 @@ impl FieldArg {
     }
 }
 
+#[derive(Debug, Args)]
+#[command(group(ArgGroup::new("euclidean ring").required(true).multiple(false)))]
+struct EuclideanRingArg {
+    /// Interpret as simple integers
+    #[arg(short = 'Z', long, group = "euclidean ring")]
+    integers: bool,
+
+    /// Interpret polynomials over real numbers
+    #[arg(short = 'R', long, group = "euclidean ring")]
+    poly_real: bool,
+
+    /// Interpret polynomials over integers modulo p (where p is prime)
+    #[arg(
+        short = 'P',
+        long,
+        value_name = "P",
+        group = "euclidean ring",
+        group = "prime check"
+    )]
+    poly_zmod: Option<usize>,
+
+    /// Don't check if p is actually a prime number
+    #[arg(long, requires = "prime check")]
+    disable_prime_check: bool,
+}
+
+impl EuclideanRingArg {
+    fn run<Int, Real, Mod>(&self, int: Int, real: Real, zmodp: Mod)
+    where
+        Int: Fn(Z),
+        Real: Fn(R),
+        Mod: Fn(ZModP),
+    {
+        match (self.integers, self.poly_real, self.poly_zmod) {
+            (true, false, None) => int(Z),
+            (false, true, None) => real(R),
+            (false, false, Some(p)) => {
+                if self.disable_prime_check {
+                    zmodp(ZModP::new(p))
+                } else if let Some(p) = ZModP::checked_new(p) {
+                    zmodp(p)
+                } else {
+                    let mut cmd = CliArgs::command();
+                    cmd.error(ErrorKind::InvalidValue, "Argument p must be prime")
+                        .exit();
+                }
+            }
+            _ => unreachable!("clap: required and no multiple"),
+        }
+    }
+}
+
 fn main() {
     let cli = CliArgs::parse();
 
@@ -154,6 +218,11 @@ fn main() {
         Operation::Div { field, lhs, rhs } => {
             field.run(|r| div(r, &lhs, &rhs), |p| div(p, &lhs, &rhs))
         }
+        Operation::Gcd { ring, lhs, rhs } => ring.run(
+            |_| gcd_int(&lhs, &rhs),
+            |r| gcd_poly(r, &lhs, &rhs),
+            |p| gcd_poly(p, &lhs, &rhs),
+        ),
     }
 }
 
@@ -212,6 +281,50 @@ where
     println!("{q}");
     if !r.is_zero() {
         println!("REM {r}");
+    }
+}
+
+fn gcd_int(lhs: &str, rhs: &str) {
+    let lhs = parse_int(lhs);
+    let rhs = parse_int(rhs);
+
+    let Some((gcd, s, t)) = polymoly::euclid::extended_euclidean_int(lhs, rhs) else {
+        let mut cmd = CliArgs::command();
+        cmd.error(ErrorKind::InvalidValue, "One side must be non-zero")
+            .exit();
+    };
+
+    println!("{gcd} with s = {s} and t = {t}");
+}
+
+fn gcd_poly<F>(field: F, lhs: &str, rhs: &str)
+where
+    F: Field + ParsableRing + DisplayRing,
+    F::Element: Clone + PartialEq + fmt::Display,
+{
+    let lhs = parse_polynomial(field, lhs);
+    let rhs = parse_polynomial(field, rhs);
+
+    let poly_ring = PolyRing::new(field);
+    let Some((gcd, s, t)) = polymoly::euclid::extended_euclidean(poly_ring, lhs, rhs) else {
+        let mut cmd = CliArgs::command();
+        cmd.error(ErrorKind::InvalidValue, "One side must be non-zero")
+            .exit();
+    };
+
+    println!("{gcd} with s = {s} and t = {t}");
+}
+
+fn parse_int(input: &str) -> isize {
+    if let Ok(int) = input.parse() {
+        int
+    } else {
+        let mut cmd = CliArgs::command();
+        cmd.error(
+            ErrorKind::InvalidValue,
+            format!("`{input}` cannot be parsed as integer"),
+        )
+        .exit();
     }
 }
 
