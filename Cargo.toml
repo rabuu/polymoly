@@ -8,6 +8,6 @@ readme = "README.md"
 license = "MIT"
 
 [workspace]
-members = [ "cli" ]
+members = [ "cli" , "webapp"]
 
 [dependencies]
