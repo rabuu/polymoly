@@ -13,38 +13,77 @@ impl DisplayRing for R {}
 impl DisplayRing for Z {}
 impl<T: ZMod> DisplayRing for T {}
 
-impl<R> fmt::Display for Poly<R>
-where
+pub struct DisplayPart<R: DisplayRing> {
+    pub coefficient: Option<R::Element>,
+    pub variable: Option<Option<usize>>,
+}
+
+impl<R> DisplayPart<R>
+where 
     R: DisplayRing,
-    R::Element: PartialEq + fmt::Display,
+    R::Element: Clone + PartialEq,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut str = String::with_capacity(self.elems.len() * 3);
-        for (i, elem) in self.elems.iter().enumerate().rev() {
-            if *elem == self.ring.zero() {
+    pub fn get_parts(poly: &Poly<R>) -> Vec<DisplayPart<R>> {
+        if poly.is_zero() {
+            return vec![
+                DisplayPart {
+                    coefficient: Some(poly.ring.zero()),
+                    variable: None,
+                }
+            ];
+        }
+
+        let mut parts = Vec::new();
+        for (i, elem) in poly.elems.iter().enumerate().rev() {
+            if *elem == poly.ring.zero() {
                 continue;
             }
 
-            if i < self.elems.len() - 1 {
-                str.push_str(" + ");
+            let coefficient = (*elem != poly.ring.one() || i == 0).then_some(elem.clone());
+
+            let variable = match i {
+                0 => None,
+                1 => Some(None),
+                _ => Some(Some(i)),
+            };
+
+            parts.push(DisplayPart { coefficient, variable });
+        }
+
+        parts
+    }
+}
+
+impl<R> fmt::Display for Poly<R>
+where
+    R: DisplayRing,
+    R::Element: Clone + PartialEq + fmt::Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let parts = DisplayPart::get_parts(self);
+        let len = parts.len();
+
+        let string = parts.into_iter().enumerate().fold(String::new(), |mut acc, (i, part)| {
+            if let Some(e) = part.coefficient {
+                acc.push_str(&e.to_string());
             }
 
-            let elem = (*elem != self.ring.one() || i == 0).then_some(elem);
-            let elem_str = elem.map(|e| format!("{e}")).unwrap_or_default();
+            if let Some(variable) = part.variable {
+                acc.push('x');
+                if let Some(exponent) = variable {
+                    acc.push('^');
+                    acc.push_str(&exponent.to_string());
+                }
+            }
 
-            let x = match i {
-                0 => "".to_string(),
-                1 => "x".to_string(),
-                _ => format!("x^{i}"),
-            };
-            str.push_str(&format!("{elem_str}{x}"));
-        }
+            if i < len - 1 {
+                acc.push_str(" + ");
+            }
 
-        if str.is_empty() {
-            str = format!("{}", self.ring.zero());
-        }
+            acc
+        });
 
-        write!(f, "{str}")
+        write!(f, "{string}")
     }
 }
 
