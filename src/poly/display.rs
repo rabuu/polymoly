@@ -62,55 +62,76 @@ where
     }
 }
 
-/// Fold a displayable [Poly] into another type.
-///
-/// This uses [DisplayPart]s for "rendering".
-///
-/// - `init`: the seed value of the folding
-/// - `coeff`: if a coefficient can be displayed, do something to the accumulator
-/// - `var`: if a variable can be displayed, do something to the accumulator
-/// - `exp`: if a exponent can be displayed, do something to the accumulator
-/// - `sep`: do something to the accumulator to add a seperator
-pub fn fold_displayring_poly<R, O, C, V, E, S>(
-    poly: &Poly<R>,
-    init: O,
-    coeff: C,
-    var: V,
-    exp: E,
-    sep: S,
-) -> O
+impl<R> Poly<R>
 where
     R: DisplayRing,
     R::Element: Clone + PartialEq,
-    C: Fn(&mut O, R::Element),
-    V: Fn(&mut O),
-    E: Fn(&mut O, usize),
-    S: Fn(&mut O),
 {
-    let parts = DisplayPart::get_parts(poly);
-    let len = parts.len();
+    /// Fold a displayable [Poly] into another type.
+    ///
+    /// This uses [DisplayPart]s for "rendering".
+    ///
+    /// - `init`: the seed value of the folding
+    /// - `coeff`: if a coefficient can be displayed, do something to the accumulator
+    /// - `var`: if a variable can be displayed, do something to the accumulator
+    /// - `sep`: do something to the accumulator to add a seperator
+    pub fn fold_display_parts<O, C, V, S>(&self, init: O, coeff: C, var: V, sep: S) -> O
+    where
+        C: Fn(&mut O, R::Element),
+        V: Fn(&mut O, Option<usize>),
+        S: Fn(&mut O),
+    {
+        let parts = DisplayPart::get_parts(self);
+        let len = parts.len();
 
-    parts
-        .into_iter()
-        .enumerate()
-        .fold(init, |mut acc, (i, part)| {
-            if let Some(c) = part.coefficient {
-                coeff(&mut acc, c);
-            }
-
-            if let Some(variable) = part.variable {
-                var(&mut acc);
-                if let Some(exponent) = variable {
-                    exp(&mut acc, exponent);
+        parts
+            .into_iter()
+            .enumerate()
+            .fold(init, |mut acc, (i, part)| {
+                if let Some(c) = part.coefficient {
+                    coeff(&mut acc, c);
                 }
-            }
 
-            if i < len - 1 {
-                sep(&mut acc);
-            }
+                if let Some(exponent) = part.variable {
+                    var(&mut acc, exponent);
+                }
 
-            acc
+                if i < len - 1 {
+                    sep(&mut acc);
+                }
+
+                acc
+            })
+    }
+
+    /// Map components of a displayable [Poly] to other types.
+    ///
+    /// This uses [DisplayPart]s for "rendering".
+    ///
+    /// - `coeff`: if a coefficient can be displayed, map it to something
+    /// - `var`: if a variable can be displayed, map it to something
+    /// - `sep`: separator between the components
+    pub fn map_display_parts<C, CF, V, VF, S, SF>(
+        &self,
+        coeff: CF,
+        var: VF,
+        sep: SF,
+    ) -> impl IntoIterator<Item = (Option<C>, Option<V>, Option<S>)>
+    where
+        CF: Fn(R::Element) -> C,
+        VF: Fn(Option<usize>) -> V,
+        SF: Fn() -> S,
+    {
+        let parts = DisplayPart::get_parts(self);
+        let len = parts.len();
+
+        parts.into_iter().enumerate().map(move |(i, part)| {
+            let c = part.coefficient.map(&coeff);
+            let v = part.variable.map(&var);
+            let s = (i < len - 1).then(&sep);
+            (c, v, s)
         })
+    }
 }
 
 impl<R> fmt::Display for Poly<R>
@@ -119,18 +140,17 @@ where
     R::Element: Clone + PartialEq + fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let string = fold_displayring_poly(
-            self,
+        let string = self.fold_display_parts(
             String::new(),
             |s, coeff| {
                 s.push_str(&coeff.to_string());
             },
-            |s| {
-                s.push('x');
-            },
             |s, exp| {
-                s.push('^');
-                s.push_str(&exp.to_string());
+                s.push('x');
+                if let Some(exp) = exp {
+                    s.push('^');
+                    s.push_str(&exp.to_string());
+                }
             },
             |s| {
                 s.push_str(" + ");
