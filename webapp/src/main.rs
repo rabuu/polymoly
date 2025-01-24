@@ -1,5 +1,10 @@
+mod mathml;
+
+use leptos::either::Either;
 use leptos::prelude::*;
 use polymoly::{Poly, R};
+
+use self::mathml::MathMLPoly;
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -11,7 +16,29 @@ fn App() -> impl IntoView {
     let (lhs, set_lhs) = signal(String::new());
     let (rhs, set_rhs) = signal(String::new());
 
-    let (output, set_output) = signal(String::new());
+    let (result, set_result) = signal(Poly::new(polymoly::R, vec![2.0, 3.0, 4.0]));
+    let (error, set_error) = signal(None);
+
+    let output = move || {
+        if error.get().is_none() {
+            Either::Left(view! { <MathMLPoly poly=result /> })
+        } else {
+            Either::Right(error.get().unwrap())
+        }
+    };
+
+    let calculate = move |_| {
+                let (lhs, rhs) = match parse(&lhs.get(), &rhs.get()) {
+                    Ok(ok) => ok,
+                    Err(err) => {
+                        set_error.set(Some(err));
+                        return;
+                    }
+                };
+                set_result.set(lhs + rhs);
+                set_error.set(None);
+            };
+
 
     view! {
         <input type="text"
@@ -23,23 +50,12 @@ fn App() -> impl IntoView {
             bind:value=(rhs, set_rhs)
         />
 
-        <button
-            on:click=move |_| {
-                let (lhs, rhs) = match parse(&lhs.get(), &rhs.get()) {
-                    Ok(ok) => ok,
-                    Err(err) => {
-                        set_output.set(err);
-                        return;
-                    }
-                };
-                set_output.set(format!("{}", lhs + rhs));
-            }
-        >
+        <button on:click=calculate >
             "Calculate"
         </button>
 
         <p>
-            {move || output.get()}
+            { output }
         </p>
     }
 }
