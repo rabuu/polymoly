@@ -4,7 +4,7 @@ use leptos::either::Either;
 use leptos::prelude::*;
 use polymoly::{Poly, R};
 
-use self::mathml::MathMLPoly;
+use self::mathml::PolyDisplay;
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -17,11 +17,11 @@ fn App() -> impl IntoView {
     let (rhs, set_rhs) = signal(String::new());
 
     let (result, set_result) = signal(Poly::new(polymoly::R, vec![2.0, 3.0, 4.0]));
-    let (error, set_error) = signal(None);
+    let (error, set_error) = signal(Some(String::from("")));
 
     let output = move || {
         if error.get().is_none() {
-            Either::Left(view! { <MathMLPoly poly=result /> })
+            Either::Left(view! { <PolyDisplay poly=result /> })
         } else {
             Either::Right(error.get().unwrap())
         }
@@ -49,6 +49,12 @@ fn App() -> impl IntoView {
             prop:placeholder="Right-hand side"
             bind:value=(rhs, set_rhs)
         />
+
+        <select>
+            <option value="R">{mathml::ring(mathml::LETTER_R, true)}</option>
+            <option value="Z">{mathml::ring(mathml::LETTER_Z, true)}</option>
+            <option value="ZModN">{mathml::ring(mathml::zmod_string("n"), true)}</option>
+        </select>
 
         <button on:click=calculate >
             "Calculate"
