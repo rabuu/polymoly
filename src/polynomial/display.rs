@@ -24,11 +24,7 @@ pub struct DisplayPart<R: DisplayRing> {
     pub variable: Option<Option<usize>>,
 }
 
-impl<R> DisplayPart<R>
-where
-    R: DisplayRing,
-    R::Element: Clone + PartialEq,
-{
+impl<R: DisplayRing> DisplayPart<R> {
     /// Generate the [DisplayPart]s from a [Polynomial]
     pub fn get_parts(poly: &Polynomial<R>) -> Vec<DisplayPart<R>> {
         if poly.is_zero() {
@@ -62,11 +58,7 @@ where
     }
 }
 
-impl<R> Polynomial<R>
-where
-    R: DisplayRing,
-    R::Element: Clone + PartialEq,
-{
+impl<R: DisplayRing> Polynomial<R> {
     /// Fold a displayable [Polynomial] into another type.
     ///
     /// This uses [DisplayPart]s for "rendering".
@@ -137,7 +129,7 @@ where
 impl<R> fmt::Display for Polynomial<R>
 where
     R: DisplayRing,
-    R::Element: Clone + PartialEq + fmt::Display,
+    R::Element: fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let string = self.fold_display_parts(

@@ -231,7 +231,7 @@ fn main() {
 fn add<R>(ring: R, polynomials: &[String])
 where
     R: ParsableRing + DisplayRing,
-    R::Element: Clone + PartialEq + fmt::Display,
+    R::Element: fmt::Display,
 {
     let result = polynomials
         .iter()
@@ -245,7 +245,7 @@ where
 fn sub<R>(ring: R, lhs: &str, rhs: &str)
 where
     R: ParsableRing + DisplayRing,
-    R::Element: Clone + PartialEq + fmt::Display,
+    R::Element: fmt::Display,
 {
     let lhs = parse_polynomial(ring, lhs);
     let rhs = parse_polynomial(ring, rhs);
@@ -256,7 +256,7 @@ where
 fn mul<R>(ring: R, polynomials: &[String])
 where
     R: ParsableRing + DisplayRing,
-    R::Element: Clone + PartialEq + fmt::Display,
+    R::Element: fmt::Display,
 {
     let result = polynomials
         .iter()
@@ -270,7 +270,7 @@ where
 fn div<F>(field: F, lhs: &str, rhs: &str)
 where
     F: Field + ParsableRing + DisplayRing,
-    F::Element: Clone + PartialEq + fmt::Display,
+    F::Element: fmt::Display,
 {
     let lhs = parse_polynomial(field, lhs);
     let rhs = parse_polynomial(field, rhs);
@@ -302,7 +302,7 @@ fn gcd_int(lhs: &str, rhs: &str) {
 fn gcd_poly<F>(field: F, lhs: &str, rhs: &str)
 where
     F: Field + ParsableRing + DisplayRing,
-    F::Element: Clone + PartialEq + fmt::Display,
+    F::Element: fmt::Display,
 {
     let lhs = parse_polynomial(field, lhs);
     let rhs = parse_polynomial(field, rhs);
@@ -330,11 +330,7 @@ fn parse_int(input: &str) -> isize {
     }
 }
 
-fn parse_polynomial<R>(ring: R, input: &str) -> Polynomial<R>
-where
-    R: ParsableRing,
-    R::Element: Clone + PartialEq,
-{
+fn parse_polynomial<R: ParsableRing>(ring: R, input: &str) -> Polynomial<R> {
     if let Some(poly) = Polynomial::parse(ring, input) {
         poly
     } else {

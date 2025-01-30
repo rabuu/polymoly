@@ -15,11 +15,7 @@ impl<R: Ring> PolynomialRing<R> {
     }
 }
 
-impl<R> Ring for PolynomialRing<R>
-where
-    R: Ring,
-    R::Element: Clone + PartialEq,
-{
+impl<R: Ring> Ring for PolynomialRing<R> {
     type Element = Polynomial<R>;
 
     fn zero(&self) -> Self::Element {

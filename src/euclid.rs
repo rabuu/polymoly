@@ -24,11 +24,7 @@ impl EuclideanRing for Integers {
     }
 }
 
-impl<F> EuclideanRing for PolynomialRing<F>
-where
-    F: Field,
-    F::Element: Clone + PartialEq,
-{
+impl<F: Field> EuclideanRing for PolynomialRing<F> {
     fn euclidean_function(elem: Self::Element) -> Option<usize> {
         elem.deg()
     }
@@ -47,15 +43,11 @@ where
 /// and `b` and the equation `(s * a) + (t * a) = gcd` holds.
 ///
 /// This will be `None` iff `a` and `b` are 0.
-pub fn extended_euclidean<E>(
+pub fn extended_euclidean<E: EuclideanRing>(
     ring: E,
     a: E::Element,
     b: E::Element,
-) -> Option<(E::Element, E::Element, E::Element)>
-where
-    E: EuclideanRing,
-    E::Element: Clone + PartialEq,
-{
+) -> Option<(E::Element, E::Element, E::Element)> {
     if a == ring.zero() && b == ring.zero() {
         return None;
     }

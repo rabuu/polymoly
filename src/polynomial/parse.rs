@@ -9,11 +9,7 @@ use super::Polynomial;
 pub trait ParsableRing: Ring {
     fn parse_elem(&self, input: &str) -> Option<Self::Element>;
 
-    fn parse_poly(&self, input: &str) -> Option<Polynomial<Self>>
-    where
-        Self: Sized,
-        Self::Element: Clone + PartialEq,
-    {
+    fn parse_poly(&self, input: &str) -> Option<Polynomial<Self>> {
         let input: String = input.chars().filter(|c| !c.is_whitespace()).collect();
 
         let mut poly: Polynomial<Self> = Polynomial::zero(*self);
