@@ -1,6 +1,6 @@
 //! Implementation of the (extended) euclidean algorithm
 
-use crate::{Field, PolyRing, Ring, Z};
+use crate::{Field, Integers, PolynomialRing, Ring};
 
 /// A integral domain that has a well-defined euclidean division
 pub trait EuclideanRing: Ring {
@@ -11,7 +11,7 @@ pub trait EuclideanRing: Ring {
     ) -> Option<(Self::Element, Self::Element)>;
 }
 
-impl EuclideanRing for Z {
+impl EuclideanRing for Integers {
     fn euclidean_function(elem: Self::Element) -> Option<usize> {
         Some(elem.unsigned_abs())
     }
@@ -24,7 +24,7 @@ impl EuclideanRing for Z {
     }
 }
 
-impl<F> EuclideanRing for PolyRing<F>
+impl<F> EuclideanRing for PolynomialRing<F>
 where
     F: Field,
     F::Element: Clone + PartialEq,
@@ -97,9 +97,9 @@ where
 
 /// Extended euclidean algorithm for integers
 ///
-/// This is similar to [extended_euclidean] for [Z] but always takes the positive GCD.
+/// This is similar to [extended_euclidean] for [Integers] but always takes the positive GCD.
 pub fn extended_euclidean_int(a: isize, b: isize) -> Option<(usize, isize, isize)> {
-    extended_euclidean(Z, a, b).map(|(gcd, s, t)| {
+    extended_euclidean(Integers, a, b).map(|(gcd, s, t)| {
         if gcd < 0 {
             (gcd.unsigned_abs(), -s, -t)
         } else {

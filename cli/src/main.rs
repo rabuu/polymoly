@@ -3,8 +3,10 @@ use std::fmt;
 use clap::ArgGroup;
 use clap::{error::ErrorKind, Args, CommandFactory, Parser, Subcommand};
 
-use polymoly::poly::{display::DisplayRing, parse::ParsableRing};
-use polymoly::{Field, Poly, PolyRing, ZModN, ZModP, R, Z};
+use polymoly::polynomial::{display::DisplayRing, parse::ParsableRing};
+use polymoly::{
+    Field, Integers, IntegersModuloN, IntegersModuloP, Polynomial, PolynomialRing, Reals,
+};
 
 #[derive(Parser)]
 #[command(version, propagate_version = true, about = None, long_about = None)]
@@ -91,14 +93,14 @@ struct RingArg {
 impl RingArg {
     fn run<Real, Int, Mod>(&self, real: Real, integer: Int, zmodn: Mod)
     where
-        Real: Fn(R),
-        Int: Fn(Z),
-        Mod: Fn(ZModN),
+        Real: Fn(Reals),
+        Int: Fn(Integers),
+        Mod: Fn(IntegersModuloN),
     {
         match (self.real, self.integer, self.zmod) {
-            (false, true, None) => integer(Z),
-            (false, false, Some(n)) => zmodn(ZModN::new(n)),
-            _ => real(R),
+            (false, true, None) => integer(Integers),
+            (false, false, Some(n)) => zmodn(IntegersModuloN::new(n)),
+            _ => real(Reals),
         }
     }
 }
@@ -128,14 +130,14 @@ struct FieldArg {
 impl FieldArg {
     fn run<Real, Mod>(&self, real: Real, zmodp: Mod)
     where
-        Real: Fn(R),
-        Mod: Fn(ZModP),
+        Real: Fn(Reals),
+        Mod: Fn(IntegersModuloP),
     {
         match (self.real, self.zmod) {
             (false, Some(p)) => {
                 if self.disable_prime_check {
-                    zmodp(ZModP::new(p))
-                } else if let Some(p) = ZModP::checked_new(p) {
+                    zmodp(IntegersModuloP::new_unchecked(p))
+                } else if let Some(p) = IntegersModuloP::new(p) {
                     zmodp(p)
                 } else {
                     let mut cmd = CliArgs::command();
@@ -143,7 +145,7 @@ impl FieldArg {
                         .exit();
                 }
             }
-            _ => real(R),
+            _ => real(Reals),
         }
     }
 }
@@ -177,17 +179,17 @@ struct EuclideanRingArg {
 impl EuclideanRingArg {
     fn run<Int, Real, Mod>(&self, int: Int, real: Real, zmodp: Mod)
     where
-        Int: Fn(Z),
-        Real: Fn(R),
-        Mod: Fn(ZModP),
+        Int: Fn(Integers),
+        Real: Fn(Reals),
+        Mod: Fn(IntegersModuloP),
     {
         match (self.integers, self.poly_real, self.poly_zmod) {
-            (true, false, None) => int(Z),
-            (false, true, None) => real(R),
+            (true, false, None) => int(Integers),
+            (false, true, None) => real(Reals),
             (false, false, Some(p)) => {
                 if self.disable_prime_check {
-                    zmodp(ZModP::new(p))
-                } else if let Some(p) = ZModP::checked_new(p) {
+                    zmodp(IntegersModuloP::new_unchecked(p))
+                } else if let Some(p) = IntegersModuloP::new(p) {
                     zmodp(p)
                 } else {
                     let mut cmd = CliArgs::command();
@@ -305,7 +307,7 @@ where
     let lhs = parse_polynomial(field, lhs);
     let rhs = parse_polynomial(field, rhs);
 
-    let poly_ring = PolyRing::new(field);
+    let poly_ring = PolynomialRing::new(field);
     let Some((gcd, s, t)) = polymoly::euclid::extended_euclidean(poly_ring, lhs, rhs) else {
         let mut cmd = CliArgs::command();
         cmd.error(ErrorKind::InvalidValue, "One side must be non-zero")
@@ -328,12 +330,12 @@ fn parse_int(input: &str) -> isize {
     }
 }
 
-fn parse_polynomial<R>(ring: R, input: &str) -> Poly<R>
+fn parse_polynomial<R>(ring: R, input: &str) -> Polynomial<R>
 where
     R: ParsableRing,
     R::Element: Clone + PartialEq,
 {
-    if let Some(poly) = Poly::parse(ring, input) {
+    if let Some(poly) = Polynomial::parse(ring, input) {
         poly
     } else {
         let mut cmd = CliArgs::command();

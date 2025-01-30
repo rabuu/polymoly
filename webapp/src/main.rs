@@ -3,7 +3,9 @@ mod mathml;
 use std::fmt::Display;
 
 use leptos::prelude::*;
-use polymoly::{Poly, R};
+
+use polymoly::polynomial::Polynomial;
+use polymoly::ring::Reals;
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -140,12 +142,12 @@ impl Display for Operation {
 }
 
 
-fn parse(lhs: &str, rhs: &str) -> Result<(Poly<R>, Poly<R>), String> {
-    let Some(lhs) = Poly::parse(R, lhs) else {
+fn parse(lhs: &str, rhs: &str) -> Result<(Polynomial<Reals>, Polynomial<Reals>), String> {
+    let Some(lhs) = Polynomial::parse(Reals, lhs) else {
         return Err(format!("Couldn't parse polynomial {lhs}"));
     };
 
-    let Some(rhs) = Poly::parse(R, rhs) else {
+    let Some(rhs) = Polynomial::parse(Reals, rhs) else {
         return Err(format!("Couldn't parse polynomial {rhs}"));
     };
 

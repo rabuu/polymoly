@@ -4,9 +4,9 @@ use super::{Field, Ring};
 
 /// The ring of real numbers `R`
 #[derive(Debug, Clone, Copy)]
-pub struct R;
+pub struct Reals;
 
-impl Ring for R {
+impl Ring for Reals {
     type Element = f64;
 
     fn zero(&self) -> Self::Element {
@@ -30,7 +30,7 @@ impl Ring for R {
     }
 }
 
-impl Field for R {
+impl Field for Reals {
     fn inv(&self, elem: Self::Element) -> Option<Self::Element> {
         (elem != 0.0).then(|| 1.0 / elem)
     }

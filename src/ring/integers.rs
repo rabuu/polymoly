@@ -4,9 +4,9 @@ use super::Ring;
 
 /// The ring of integers `Z`
 #[derive(Debug, Clone, Copy)]
-pub struct Z;
+pub struct Integers;
 
-impl Ring for Z {
+impl Ring for Integers {
     type Element = isize;
 
     fn zero(&self) -> Self::Element {

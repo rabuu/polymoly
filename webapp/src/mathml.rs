@@ -2,10 +2,11 @@ use leptos::either::Either;
 use leptos::math::{mi, mn, mo, msup};
 use leptos::prelude::*;
 
-use polymoly::Poly;
+use polymoly::polynomial::Polynomial;
+use polymoly::ring::Reals;
 
 #[component]
-pub fn PolyDisplay(poly: ReadSignal<Poly<polymoly::R>>) -> impl IntoView {
+pub fn PolyDisplay(poly: ReadSignal<Polynomial<Reals>>) -> impl IntoView {
     let x = poly.get().map_display_parts(
         |c| mn().child(c.to_string()),
         |e| {

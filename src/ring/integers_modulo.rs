@@ -4,23 +4,23 @@ use std::fmt;
 
 use super::{Field, Ring};
 
-pub(crate) trait ZMod: Copy + fmt::Debug {
+pub(crate) trait IntegersModuloAny: Copy + fmt::Debug {
     fn n(&self) -> usize;
 }
 
 /// The ring of integers modulo `n` `Z/nZ`
 #[derive(Clone, Copy)]
-pub struct ZModN {
+pub struct IntegersModuloN {
     n: usize,
 }
 
-impl ZModN {
+impl IntegersModuloN {
     pub fn new(n: usize) -> Self {
         Self { n }
     }
 }
 
-impl ZMod for ZModN {
+impl IntegersModuloAny for IntegersModuloN {
     fn n(&self) -> usize {
         self.n
     }
@@ -28,26 +28,26 @@ impl ZMod for ZModN {
 
 /// The field of integers modulo `p` where `p` is prime `Z/pZ`
 #[derive(Clone, Copy)]
-pub struct ZModP {
+pub struct IntegersModuloP {
     p: usize,
 }
 
-impl ZModP {
+impl IntegersModuloP {
     /// Construct the `Z/pZ` where `p` *must* be prime
-    pub fn new(p: usize) -> Self {
+    pub fn new_unchecked(p: usize) -> Self {
         Self { p }
     }
 
     /// Construct the `Z/pZ` and check if `p` is prime
     ///
     /// Return `None` if `p` is not prime
-    pub fn checked_new(p: usize) -> Option<Self> {
+    pub fn new(p: usize) -> Option<Self> {
         if p <= 1 {
             return None;
         }
 
         if p == 2 || p == 3 {
-            return Some(Self::new(p));
+            return Some(Self::new_unchecked(p));
         }
 
         if p % 2 == 0 || p % 3 == 0 {
@@ -61,17 +61,17 @@ impl ZModP {
             }
         }
 
-        Some(Self::new(p))
+        Some(Self::new_unchecked(p))
     }
 }
 
-impl ZMod for ZModP {
+impl IntegersModuloAny for IntegersModuloP {
     fn n(&self) -> usize {
         self.p
     }
 }
 
-impl<T: ZMod> Ring for T {
+impl<T: IntegersModuloAny> Ring for T {
     type Element = isize;
 
     fn zero(&self) -> Self::Element {
@@ -99,32 +99,32 @@ impl<T: ZMod> Ring for T {
     }
 }
 
-impl Field for ZModP {
+impl Field for IntegersModuloP {
     fn inv(&self, elem: Self::Element) -> Option<Self::Element> {
         let (_, s, _) = crate::euclid::extended_euclidean_int(elem, self.p as isize)?;
         Some(s.rem_euclid(self.p as isize))
     }
 }
 
-impl fmt::Debug for ZModN {
+impl fmt::Debug for IntegersModuloN {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Z/{}Z", self.n)
     }
 }
 
-impl fmt::Debug for ZModP {
+impl fmt::Debug for IntegersModuloP {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Z/{}Z", self.p)
     }
 }
 
-impl fmt::Display for ZModN {
+impl fmt::Display for IntegersModuloN {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-impl fmt::Display for ZModP {
+impl fmt::Display for IntegersModuloP {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
@@ -136,24 +136,24 @@ mod tests {
 
     #[test]
     fn prime_detection() {
-        assert!(ZModP::checked_new(0).is_none());
-        assert!(ZModP::checked_new(1).is_none());
-        assert!(ZModP::checked_new(4).is_none());
-        assert!(ZModP::checked_new(6).is_none());
-        assert!(ZModP::checked_new(8).is_none());
-        assert!(ZModP::checked_new(9).is_none());
-        assert!(ZModP::checked_new(333).is_none());
-        assert!(ZModP::checked_new(7909).is_none());
+        assert!(IntegersModuloP::new(0).is_none());
+        assert!(IntegersModuloP::new(1).is_none());
+        assert!(IntegersModuloP::new(4).is_none());
+        assert!(IntegersModuloP::new(6).is_none());
+        assert!(IntegersModuloP::new(8).is_none());
+        assert!(IntegersModuloP::new(9).is_none());
+        assert!(IntegersModuloP::new(333).is_none());
+        assert!(IntegersModuloP::new(7909).is_none());
 
-        assert!(ZModP::checked_new(2).is_some());
-        assert!(ZModP::checked_new(3).is_some());
-        assert!(ZModP::checked_new(5).is_some());
-        assert!(ZModP::checked_new(7).is_some());
-        assert!(ZModP::checked_new(11).is_some());
-        assert!(ZModP::checked_new(13).is_some());
-        assert!(ZModP::checked_new(19).is_some());
-        assert!(ZModP::checked_new(43).is_some());
-        assert!(ZModP::checked_new(127).is_some());
-        assert!(ZModP::checked_new(7793).is_some());
+        assert!(IntegersModuloP::new(2).is_some());
+        assert!(IntegersModuloP::new(3).is_some());
+        assert!(IntegersModuloP::new(5).is_some());
+        assert!(IntegersModuloP::new(7).is_some());
+        assert!(IntegersModuloP::new(11).is_some());
+        assert!(IntegersModuloP::new(13).is_some());
+        assert!(IntegersModuloP::new(19).is_some());
+        assert!(IntegersModuloP::new(43).is_some());
+        assert!(IntegersModuloP::new(127).is_some());
+        assert!(IntegersModuloP::new(7793).is_some());
     }
 }

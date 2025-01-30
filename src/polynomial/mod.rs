@@ -9,12 +9,12 @@ use crate::ring::{Field, Ring};
 use parse::ParsableRing;
 
 /// A polynomial over the ring `R`
-pub struct Poly<R: Ring> {
+pub struct Polynomial<R: Ring> {
     ring: R,
     elems: Vec<R::Element>,
 }
 
-impl<R: Ring> Poly<R> {
+impl<R: Ring> Polynomial<R> {
     pub fn new(ring: R, elems: impl Into<Vec<R::Element>>) -> Self
     where
         R::Element: PartialEq,
@@ -139,8 +139,8 @@ impl<R: Ring> Poly<R> {
     }
 }
 
-impl<F: Field> Poly<F> {
-    pub fn polynomial_division(self, rhs: Poly<F>) -> Option<(Poly<F>, Poly<F>)>
+impl<F: Field> Polynomial<F> {
+    pub fn polynomial_division(self, rhs: Polynomial<F>) -> Option<(Polynomial<F>, Polynomial<F>)>
     where
         F::Element: Clone + PartialEq,
     {
@@ -149,7 +149,7 @@ impl<F: Field> Poly<F> {
         }
 
         let ring = self.ring;
-        let mut q = Poly::zeros(self.ring, self.elems.len());
+        let mut q = Polynomial::zeros(self.ring, self.elems.len());
         let mut r = self;
         let d = rhs.deg().expect("rhs is not zero");
 
@@ -162,7 +162,7 @@ impl<F: Field> Poly<F> {
 
             let deg = r_deg - d;
             let quotient = ring.div(r.lc(), rhs.lc()).expect("rhs is not zero");
-            let t = Poly::single(ring, quotient, deg);
+            let t = Polynomial::single(ring, quotient, deg);
             q += t.clone();
             r -= t * rhs.clone();
         }
@@ -171,14 +171,14 @@ impl<F: Field> Poly<F> {
     }
 }
 
-impl<R> ops::Add<Poly<R>> for Poly<R>
+impl<R> ops::Add<Polynomial<R>> for Polynomial<R>
 where
     R: Ring,
     R::Element: Clone + PartialEq,
 {
-    type Output = Poly<R>;
+    type Output = Polynomial<R>;
 
-    fn add(self, rhs: Poly<R>) -> Self::Output {
+    fn add(self, rhs: Polynomial<R>) -> Self::Output {
         let (longer, shorter) = if self.elems.len() > rhs.elems.len() {
             (self, rhs)
         } else {
@@ -196,12 +196,12 @@ where
     }
 }
 
-impl<R> ops::AddAssign<Poly<R>> for Poly<R>
+impl<R> ops::AddAssign<Polynomial<R>> for Polynomial<R>
 where
     R: Ring,
     R::Element: Clone + PartialEq,
 {
-    fn add_assign(&mut self, rhs: Poly<R>) {
+    fn add_assign(&mut self, rhs: Polynomial<R>) {
         self.fill_with_zeros(rhs.elems.len());
         for (i, elem) in rhs.elems.into_iter().enumerate() {
             self.add_elem_unsafe(elem, i);
@@ -210,11 +210,11 @@ where
     }
 }
 
-impl<R> ops::Neg for Poly<R>
+impl<R> ops::Neg for Polynomial<R>
 where
     R: Ring,
 {
-    type Output = Poly<R>;
+    type Output = Polynomial<R>;
 
     fn neg(self) -> Self::Output {
         let mut out = Self::with_capacity(self.ring, self.elems.len());
@@ -225,14 +225,14 @@ where
     }
 }
 
-impl<R> ops::Sub<Poly<R>> for Poly<R>
+impl<R> ops::Sub<Polynomial<R>> for Polynomial<R>
 where
     R: Ring,
     R::Element: Clone + PartialEq,
 {
-    type Output = Poly<R>;
+    type Output = Polynomial<R>;
 
-    fn sub(self, rhs: Poly<R>) -> Self::Output {
+    fn sub(self, rhs: Polynomial<R>) -> Self::Output {
         let ring = self.ring;
 
         let (longer, shorter) = if self.elems.len() > rhs.elems.len() {
@@ -252,12 +252,12 @@ where
     }
 }
 
-impl<R> ops::SubAssign<Poly<R>> for Poly<R>
+impl<R> ops::SubAssign<Polynomial<R>> for Polynomial<R>
 where
     R: Ring,
     R::Element: Clone + PartialEq,
 {
-    fn sub_assign(&mut self, rhs: Poly<R>) {
+    fn sub_assign(&mut self, rhs: Polynomial<R>) {
         self.fill_with_zeros(rhs.elems.len());
         for (i, elem) in rhs.elems.into_iter().enumerate() {
             self.add_elem_unsafe(self.ring.neg(elem), i);
@@ -266,16 +266,16 @@ where
     }
 }
 
-impl<R> ops::Mul<Poly<R>> for Poly<R>
+impl<R> ops::Mul<Polynomial<R>> for Polynomial<R>
 where
     R: Ring,
     R::Element: Clone + PartialEq,
 {
-    type Output = Poly<R>;
+    type Output = Polynomial<R>;
 
-    fn mul(self, rhs: Poly<R>) -> Self::Output {
+    fn mul(self, rhs: Polynomial<R>) -> Self::Output {
         if self.is_zero() || rhs.is_zero() {
-            return Poly::zero(self.ring);
+            return Polynomial::zero(self.ring);
         }
 
         let n = self.deg().unwrap();
@@ -293,18 +293,18 @@ where
     }
 }
 
-impl<R> ops::MulAssign<Poly<R>> for Poly<R>
+impl<R> ops::MulAssign<Polynomial<R>> for Polynomial<R>
 where
     R: Ring,
     R::Element: Clone + PartialEq,
 {
-    fn mul_assign(&mut self, rhs: Poly<R>) {
+    fn mul_assign(&mut self, rhs: Polynomial<R>) {
         let product = self.clone() * rhs;
         *self = product;
     }
 }
 
-impl<R> Clone for Poly<R>
+impl<R> Clone for Polynomial<R>
 where
     R: Ring,
     R::Element: Clone,
@@ -317,7 +317,7 @@ where
     }
 }
 
-impl<R> PartialEq for Poly<R>
+impl<R> PartialEq for Polynomial<R>
 where
     R: Ring,
     R::Element: PartialEq,
@@ -330,20 +330,20 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Z;
+    use crate::Integers;
 
     #[test]
     fn degree() {
-        assert_eq!(Poly::zero(Z).deg(), None);
-        assert_eq!(Poly::constant(Z, 42).deg(), Some(0));
+        assert_eq!(Polynomial::zero(Integers).deg(), None);
+        assert_eq!(Polynomial::constant(Integers, 42).deg(), Some(0));
 
         for i in 0..3 {
-            assert_eq!(Poly::single(Z, 42, i).deg(), Some(i));
+            assert_eq!(Polynomial::single(Integers, 42, i).deg(), Some(i));
         }
 
-        assert_eq!(Poly::single(Z, 0, 9).deg(), None);
+        assert_eq!(Polynomial::single(Integers, 0, 9).deg(), None);
 
-        let product = Poly::single(Z, 2, 2) * Poly::single(Z, 3, 3);
+        let product = Polynomial::single(Integers, 2, 2) * Polynomial::single(Integers, 3, 3);
         assert_eq!(product.deg(), Some(5));
     }
 }
