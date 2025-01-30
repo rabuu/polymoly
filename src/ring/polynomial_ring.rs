@@ -1,7 +1,8 @@
 //! The ring of polynomials `R[x]`
 
+use crate::polynomial::Polynomial;
+
 use super::Ring;
-use crate::Polynomial;
 
 /// The ring of polynomials `R[x]` where `R` is another ring
 #[derive(Debug, Clone, Copy)]

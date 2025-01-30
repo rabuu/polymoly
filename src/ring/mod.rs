@@ -1,9 +1,16 @@
 //! Abstract algebraic rings
 
-pub mod integers;
-pub mod integers_modulo;
-pub mod polynomial_ring;
-pub mod reals;
+mod integers;
+mod integers_modulo;
+mod polynomial_ring;
+mod reals;
+
+pub use integers::Integers;
+pub use integers_modulo::{IntegersModuloN, IntegersModuloP};
+pub use polynomial_ring::PolynomialRing;
+pub use reals::Reals;
+
+pub(crate) use integers_modulo::IntegersModuloAny;
 
 /// An algebraic commutative ring
 pub trait Ring: Copy + std::fmt::Debug {

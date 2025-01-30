@@ -1,6 +1,6 @@
 //! Implementation of the (extended) euclidean algorithm
 
-use crate::{Field, Integers, PolynomialRing, Ring};
+use crate::ring::{Field, Integers, PolynomialRing, Ring};
 
 /// A integral domain that has a well-defined euclidean division
 pub trait EuclideanRing: Ring {

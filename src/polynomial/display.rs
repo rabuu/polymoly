@@ -2,8 +2,7 @@
 
 use std::fmt;
 
-use crate::ring::integers_modulo::IntegersModuloAny;
-use crate::{Integers, Reals, Ring};
+use crate::ring::{Integers, IntegersModuloAny, Reals, Ring};
 
 use super::Polynomial;
 

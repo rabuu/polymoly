@@ -3,10 +3,10 @@ use std::fmt;
 use clap::ArgGroup;
 use clap::{error::ErrorKind, Args, CommandFactory, Parser, Subcommand};
 
-use polymoly::polynomial::{display::DisplayRing, parse::ParsableRing};
-use polymoly::{
-    Field, Integers, IntegersModuloN, IntegersModuloP, Polynomial, PolynomialRing, Reals,
-};
+use polymoly::polynomial::display::DisplayRing;
+use polymoly::polynomial::parse::ParsableRing;
+use polymoly::polynomial::Polynomial;
+use polymoly::ring::{Field, Integers, IntegersModuloN, IntegersModuloP, PolynomialRing, Reals};
 
 #[derive(Parser)]
 #[command(version, propagate_version = true, about = None, long_about = None)]
@@ -91,16 +91,16 @@ struct RingArg {
 }
 
 impl RingArg {
-    fn run<Real, Int, Mod>(&self, real: Real, integer: Int, zmodn: Mod)
+    fn run<R, I, M>(&self, reals: R, integers: I, modulo: M)
     where
-        Real: Fn(Reals),
-        Int: Fn(Integers),
-        Mod: Fn(IntegersModuloN),
+        R: Fn(Reals),
+        I: Fn(Integers),
+        M: Fn(IntegersModuloN),
     {
         match (self.real, self.integer, self.zmod) {
-            (false, true, None) => integer(Integers),
-            (false, false, Some(n)) => zmodn(IntegersModuloN::new(n)),
-            _ => real(Reals),
+            (false, true, None) => integers(Integers),
+            (false, false, Some(n)) => modulo(IntegersModuloN::new(n)),
+            _ => reals(Reals),
         }
     }
 }
@@ -128,24 +128,24 @@ struct FieldArg {
 }
 
 impl FieldArg {
-    fn run<Real, Mod>(&self, real: Real, zmodp: Mod)
+    fn run<R, M>(&self, reals: R, modulo: M)
     where
-        Real: Fn(Reals),
-        Mod: Fn(IntegersModuloP),
+        R: Fn(Reals),
+        M: Fn(IntegersModuloP),
     {
         match (self.real, self.zmod) {
             (false, Some(p)) => {
                 if self.disable_prime_check {
-                    zmodp(IntegersModuloP::new_unchecked(p))
+                    modulo(IntegersModuloP::new_unchecked(p))
                 } else if let Some(p) = IntegersModuloP::new(p) {
-                    zmodp(p)
+                    modulo(p)
                 } else {
                     let mut cmd = CliArgs::command();
                     cmd.error(ErrorKind::InvalidValue, "Argument p must be prime")
                         .exit();
                 }
             }
-            _ => real(Reals),
+            _ => reals(Reals),
         }
     }
 }
@@ -177,20 +177,20 @@ struct EuclideanRingArg {
 }
 
 impl EuclideanRingArg {
-    fn run<Int, Real, Mod>(&self, int: Int, real: Real, zmodp: Mod)
+    fn run<I, R, M>(&self, integers: I, reals: R, modulo: M)
     where
-        Int: Fn(Integers),
-        Real: Fn(Reals),
-        Mod: Fn(IntegersModuloP),
+        I: Fn(Integers),
+        R: Fn(Reals),
+        M: Fn(IntegersModuloP),
     {
         match (self.integers, self.poly_real, self.poly_zmod) {
-            (true, false, None) => int(Integers),
-            (false, true, None) => real(Reals),
+            (true, false, None) => integers(Integers),
+            (false, true, None) => reals(Reals),
             (false, false, Some(p)) => {
                 if self.disable_prime_check {
-                    zmodp(IntegersModuloP::new_unchecked(p))
+                    modulo(IntegersModuloP::new_unchecked(p))
                 } else if let Some(p) = IntegersModuloP::new(p) {
-                    zmodp(p)
+                    modulo(p)
                 } else {
                     let mut cmd = CliArgs::command();
                     cmd.error(ErrorKind::InvalidValue, "Argument p must be prime")
