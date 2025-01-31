@@ -264,7 +264,7 @@ impl<R: Ring> PartialEq for Polynomial<R> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Integers;
+    use crate::ring::Integers;
 
     #[test]
     fn degree() {
