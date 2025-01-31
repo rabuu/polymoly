@@ -23,12 +23,14 @@ fn App() -> impl IntoView {
     let (field_ring, set_field_ring) = signal(String::from("real"));
 
     let (n, set_n) = signal(2_usize);
-    let do_select_n = move || if op.get().normal_ring() {
-        normal_ring.get().as_str() == "zmod"
-    } else if op.get().field_ring() {
-        field_ring.get().as_str() == "zmod"
-    } else {
-        false
+    let do_select_n = move || {
+        if op.get().normal_ring() {
+            normal_ring.get().as_str() == "zmod"
+        } else if op.get().field_ring() {
+            field_ring.get().as_str() == "zmod"
+        } else {
+            false
+        }
     };
 
     let (output, set_output) = signal(None);
@@ -95,7 +97,14 @@ fn App() -> impl IntoView {
     }
 }
 
-fn calculate(op: Operation, lhs: String, rhs: String, normal_ring: String, field_ring: String, n: usize) -> Option<impl IntoView> {
+fn calculate(
+    op: Operation,
+    lhs: String,
+    rhs: String,
+    normal_ring: String,
+    field_ring: String,
+    n: usize,
+) -> Option<impl IntoView> {
     Some(view! { hallo })
 }
 
@@ -140,7 +149,6 @@ impl Display for Operation {
         }
     }
 }
-
 
 fn parse(lhs: &str, rhs: &str) -> Result<(Polynomial<Reals>, Polynomial<Reals>), String> {
     let Some(lhs) = Polynomial::parse(Reals, lhs) else {
