@@ -43,26 +43,7 @@ impl IntegersModuloP {
     ///
     /// Return `None` if `p` is not prime
     pub fn new(p: usize) -> Option<Self> {
-        if p <= 1 {
-            return None;
-        }
-
-        if p == 2 || p == 3 {
-            return Some(Self::new_unchecked(p));
-        }
-
-        if p % 2 == 0 || p % 3 == 0 {
-            return None;
-        }
-
-        let sqrt = (p as f32).sqrt().ceil() as usize;
-        for i in (5..=sqrt).step_by(6) {
-            if p % i == 0 || p % (i + 2) == 0 {
-                return None;
-            }
-        }
-
-        Some(Self::new_unchecked(p))
+        is_prime(p).then(|| IntegersModuloP::new_unchecked(p))
     }
 }
 
@@ -129,6 +110,29 @@ impl fmt::Display for IntegersModuloP {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
+}
+
+fn is_prime(p: usize) -> bool {
+    if p <= 1 {
+        return false;
+    }
+
+    if p == 2 || p == 3 {
+        return true;
+    }
+
+    if p % 2 == 0 || p % 3 == 0 {
+        return false;
+    }
+
+    let sqrt = (p as f32).sqrt().ceil() as usize;
+    for i in (5..=sqrt).step_by(6) {
+        if p % i == 0 || p % (i + 2) == 0 {
+            return false;
+        }
+    }
+
+    true
 }
 
 #[cfg(test)]
