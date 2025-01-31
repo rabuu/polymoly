@@ -6,10 +6,10 @@ Work in progress.
 ## Supported rings
 - `R`, the real numbers
 - `Z`, the integers
-- `Z/nZ`, the ring of integers modulo `n` (field if `p` is prime)
-- `R[x]`, the polynomial ring over the ring `R`
+- `Z/nZ`, the ring of integers modulo `n` (field if `n` is prime)
+- `R[x]`, the polynomial ring over another ring `R`
 
-## Command line interface
+## Command line tool
 ```sh
 $ polymoly --help
 ```

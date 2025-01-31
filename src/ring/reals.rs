@@ -1,8 +1,6 @@
-//! The ring of real numbers `R`
-
 use super::{Field, Ring};
 
-/// The ring of real numbers `R`
+/// The ring `R` of real numbers
 #[derive(Debug, Clone, Copy)]
 pub struct Reals;
 

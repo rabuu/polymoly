@@ -1,5 +1,3 @@
-//! The ring of integers modulo `n` `Z/nZ`
-
 use std::fmt;
 
 use super::{Field, Ring};
@@ -8,7 +6,7 @@ pub(crate) trait IntegersModuloAny: Copy + fmt::Debug {
     fn n(&self) -> usize;
 }
 
-/// The ring of integers modulo `n` `Z/nZ`
+/// The ring `Z/nZ` of integers modulo `n`
 #[derive(Clone, Copy)]
 pub struct IntegersModuloN {
     n: usize,
@@ -26,7 +24,10 @@ impl IntegersModuloAny for IntegersModuloN {
     }
 }
 
-/// The field of integers modulo `p` where `p` is prime `Z/pZ`
+/// The field `Z/pZ` of integers modulo `p` where `p` is prime
+///
+/// This basically equivalent to [IntegersModuloN] but *must* only be used with a prime modulus.
+/// That ensures the field properties of this ring.
 #[derive(Clone, Copy)]
 pub struct IntegersModuloP {
     p: usize,

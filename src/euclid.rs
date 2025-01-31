@@ -1,4 +1,4 @@
-//! Implementation of the (extended) euclidean algorithm
+//! The (extended) euclidean algorithm
 
 use crate::ring::{Field, Integers, PolynomialRing, Ring};
 

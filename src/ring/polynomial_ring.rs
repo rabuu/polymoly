@@ -1,10 +1,8 @@
-//! The ring of polynomials `R[x]`
-
 use crate::polynomial::Polynomial;
 
 use super::Ring;
 
-/// The ring of polynomials `R[x]` where `R` is another ring
+/// The ring `R[x]` of polynomials where `R` is another ring
 #[derive(Debug, Clone, Copy)]
 pub struct PolynomialRing<R: Ring> {
     ring: R,
