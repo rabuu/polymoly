@@ -2,13 +2,15 @@ use leptos::either::Either;
 use leptos::math::{mi, mn, mo, msup};
 use leptos::prelude::*;
 
+use polymoly::polynomial::display::DisplayRing;
 use polymoly::polynomial::Polynomial;
-use polymoly::ring::Reals;
 
-#[component]
-pub fn PolyDisplay(poly: ReadSignal<Polynomial<Reals>>) -> impl IntoView {
+pub fn render_polynomial<R>(poly: Polynomial<R>) -> impl IntoView
+where
+    R: DisplayRing,
+    R::Element: std::fmt::Display,
+{
     let x = poly
-        .get()
         .map_display_parts(
             |c| mn().child(c.to_string()),
             |e| {
@@ -32,15 +34,15 @@ pub fn PolyDisplay(poly: ReadSignal<Polynomial<Reals>>) -> impl IntoView {
 pub const LETTER_R: &str = "ℝ";
 pub const LETTER_Z: &str = "ℤ";
 
-pub fn zmod_string(sub: &str) -> String {
+pub fn integers_modulo_string(sub: &str) -> String {
     format!("{LETTER_Z}/{sub}{LETTER_Z}")
 }
 
-pub fn ring(s: impl Into<String>, poly: bool) -> impl IntoView {
+pub fn ring_string(s: impl Into<String>, is_polynomial: bool) -> impl IntoView {
     view! {
         <math>
             <mi>{s.into()}</mi>
-            <Show when=move || poly>
+            <Show when=move || is_polynomial>
                 <mo>"["</mo>
                 <mi>"x"</mi>
                 <mo>"]"</mo>

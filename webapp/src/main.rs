@@ -4,8 +4,10 @@ use std::fmt::Display;
 
 use leptos::prelude::*;
 
+use polymoly::polynomial::display::DisplayRing;
+use polymoly::polynomial::parse::ParsableRing;
 use polymoly::polynomial::Polynomial;
-use polymoly::ring::Reals;
+use polymoly::ring::{Integers, IntegersModuloN, IntegersModuloP, Reals};
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -19,21 +21,19 @@ fn App() -> impl IntoView {
     let (lhs, set_lhs) = signal(String::new());
     let (rhs, set_rhs) = signal(String::new());
 
-    let (normal_ring, set_normal_ring) = signal(String::from("real"));
-    let (field_ring, set_field_ring) = signal(String::from("real"));
+    let (normal_ring, set_normal_ring) = signal(String::from("reals"));
+    let (field_ring, set_field_ring) = signal(String::from("reals"));
 
     let (n, set_n) = signal(2_usize);
     let do_select_n = move || {
         if op.get().normal_ring() {
-            normal_ring.get().as_str() == "zmod"
+            normal_ring.get().as_str() == "modulo"
         } else if op.get().field_ring() {
-            field_ring.get().as_str() == "zmod"
+            field_ring.get().as_str() == "modulo"
         } else {
             false
         }
     };
-
-    let (output, set_output) = signal(None);
 
     view! {
     <div>
@@ -63,9 +63,9 @@ fn App() -> impl IntoView {
             on:change:target=move |ev| set_normal_ring.set(ev.target().value())
             prop:value=move || normal_ring.get()
         >
-            <option value="real">{ mathml::ring(mathml::LETTER_R, true) }</option>
-            <option value="integer">{ mathml::ring(mathml::LETTER_Z, true) }</option>
-            <option value="zmod">{ mathml::ring(mathml::zmod_string("n"), true) }</option>
+            <option value="reals">{ mathml::ring_string(mathml::LETTER_R, true) }</option>
+            <option value="integers">{ mathml::ring_string(mathml::LETTER_Z, true) }</option>
+            <option value="modulo">{ mathml::ring_string(mathml::integers_modulo_string("n"), true) }</option>
         </select>
     </Show>
 
@@ -74,14 +74,23 @@ fn App() -> impl IntoView {
             on:change:target=move |ev| set_field_ring.set(ev.target().value())
             prop:value=move || field_ring.get()
         >
-            <option value="real">{ mathml::ring(mathml::LETTER_R, true) }</option>
-            <option value="zmod">{ mathml::ring(mathml::zmod_string("p"), true) }</option>
+            <option value="reals">{ mathml::ring_string(mathml::LETTER_R, true) }</option>
+            <option value="modulo">{ mathml::ring_string(mathml::integers_modulo_string("p"), true) }</option>
         </select>
     </Show>
 
     <Show when=do_select_n >
         <input type="number" min="2"
-            prop:placeholder="n"
+            prop:placeholder=move || {
+                let op = op.get();
+                if op.normal_ring() {
+                    "n"
+                } else if op.field_ring() {
+                    "p"
+                } else {
+                    "?"
+                }
+            }
             on:input:target=move |ev| if let Ok(n_int) = ev.target().value().parse() {
                 set_n.set(n_int);
             }
@@ -89,11 +98,16 @@ fn App() -> impl IntoView {
         />
     </Show>
 
-    <button on:click=move |_| set_output.set(calculate(op.get(), lhs.get(), rhs.get(), normal_ring.get(), field_ring.get(), n.get()))>
-        "Calculate"
-    </button>
+    // <button on:click=move |_| { }>
+    //     "Calculate"
+    // </button>
 
-    // <p> { output } </p>
+    <p>
+        { move || {
+            calculate(op.get(),lhs.get(),rhs.get(),normal_ring.get(),field_ring.get(),n.get())
+        }}
+    </p>
+
     }
 }
 
@@ -104,8 +118,146 @@ fn calculate(
     normal_ring: String,
     field_ring: String,
     n: usize,
-) -> Option<impl IntoView> {
-    Some(view! { hallo })
+) -> impl IntoView {
+    match op {
+        Operation::Add => match normal_ring.as_str() {
+            "reals" => {
+                let (lhs, rhs) = match parse(Reals, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                mathml::render_polynomial(lhs + rhs).into_any()
+            }
+            "integers" => {
+                let (lhs, rhs) = match parse(Integers, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                mathml::render_polynomial(lhs + rhs).into_any()
+            }
+            "modulo" => {
+                let modulo = IntegersModuloN::new(n);
+                let (lhs, rhs) = match parse(modulo, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                mathml::render_polynomial(lhs + rhs).into_any()
+            }
+            _ => unreachable!(),
+        },
+        Operation::Sub => match normal_ring.as_str() {
+            "reals" => {
+                let (lhs, rhs) = match parse(Reals, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                mathml::render_polynomial(lhs - rhs).into_any()
+            }
+            "integers" => {
+                let (lhs, rhs) = match parse(Integers, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                mathml::render_polynomial(lhs - rhs).into_any()
+            }
+            "modulo" => {
+                let modulo = IntegersModuloN::new(n);
+                let (lhs, rhs) = match parse(modulo, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                mathml::render_polynomial(lhs - rhs).into_any()
+            }
+            _ => unreachable!(),
+        },
+        Operation::Mul => match normal_ring.as_str() {
+            "reals" => {
+                let (lhs, rhs) = match parse(Reals, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                mathml::render_polynomial(lhs * rhs).into_any()
+            }
+            "integers" => {
+                let (lhs, rhs) = match parse(Integers, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                mathml::render_polynomial(lhs * rhs).into_any()
+            }
+            "modulo" => {
+                let modulo = IntegersModuloN::new(n);
+                let (lhs, rhs) = match parse(modulo, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                mathml::render_polynomial(lhs * rhs).into_any()
+            }
+            _ => unreachable!(),
+        },
+        Operation::Div => match field_ring.as_str() {
+            "reals" => {
+                let (lhs, rhs) = match parse(Reals, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                let Some((q, r)) = lhs.polynomial_division(rhs) else {
+                    return view! { "Error: right-hand side must not be zero" }.into_any();
+                };
+
+                let has_rest = !r.is_zero();
+                view! {
+                    { mathml::render_polynomial(q) }
+                    <Show when=move || has_rest>
+                        <br />
+                        "REM "
+                        {
+                            let r = r.clone();
+                            mathml::render_polynomial(r)
+                        }
+                    </Show>
+                }.into_any()
+            }
+            "modulo" => {
+                let Some(modulo) = IntegersModuloP::new(n) else {
+                    return view! { "Error: p must be prime" }.into_any();
+                };
+
+                let (lhs, rhs) = match parse(modulo, &lhs, &rhs) {
+                    Ok(x) => x,
+                    Err(err) => return view! { { err } }.into_any(),
+                };
+
+                let Some((q, r)) = lhs.polynomial_division(rhs) else {
+                    return view! { "Error: right-hand side must not be zero" }.into_any();
+                };
+
+                let has_rest = !r.is_zero();
+                view! {
+                    { mathml::render_polynomial(q) }
+                    <Show when=move || has_rest>
+                        <br />
+                        "REM "
+                        {
+                            let r = r.clone();
+                            mathml::render_polynomial(r)
+                        }
+                    </Show>
+                }.into_any()
+            }
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -150,12 +302,15 @@ impl Display for Operation {
     }
 }
 
-fn parse(lhs: &str, rhs: &str) -> Result<(Polynomial<Reals>, Polynomial<Reals>), String> {
-    let Some(lhs) = Polynomial::parse(Reals, lhs) else {
+fn parse<R>(ring: R, lhs: &str, rhs: &str) -> Result<(Polynomial<R>, Polynomial<R>), String>
+where
+    R: ParsableRing + DisplayRing,
+{
+    let Some(lhs) = Polynomial::parse(ring, lhs) else {
         return Err(format!("Couldn't parse polynomial {lhs}"));
     };
 
-    let Some(rhs) = Polynomial::parse(Reals, rhs) else {
+    let Some(rhs) = Polynomial::parse(ring, rhs) else {
         return Err(format!("Couldn't parse polynomial {rhs}"));
     };
 
