@@ -79,15 +79,15 @@ enum Operation {
 struct RingArg {
     /// Interpret polynomials over real numbers
     #[arg(short = 'R', long)]
-    real: bool,
+    reals: bool,
 
     /// Interpret polynomials over integers
     #[arg(short = 'Z', long)]
-    integer: bool,
+    integers: bool,
 
     /// Interpret polynomials over integers modulo n
-    #[arg(short = 'N', long, value_name = "N")]
-    zmod: Option<usize>,
+    #[arg(short = 'M', long, value_name = "N")]
+    modulo: Option<usize>,
 }
 
 impl RingArg {
@@ -97,7 +97,7 @@ impl RingArg {
         I: Fn(Integers),
         M: Fn(IntegersModuloN),
     {
-        match (self.real, self.integer, self.zmod) {
+        match (self.reals, self.integers, self.modulo) {
             (false, true, None) => integers(Integers),
             (false, false, Some(n)) => modulo(IntegersModuloN::new(n)),
             _ => reals(Reals),
@@ -110,17 +110,17 @@ impl RingArg {
 struct FieldArg {
     /// Interpret polynomials over real numbers
     #[arg(short = 'R', long, group = "field")]
-    real: bool,
+    reals: bool,
 
     /// Interpret polynomials over integers modulo p (where p is prime)
     #[arg(
-        short = 'P',
+        short = 'M',
         long,
         value_name = "P",
         group = "field",
         group = "prime check"
     )]
-    zmod: Option<usize>,
+    modulo: Option<usize>,
 
     /// Don't check if p is actually a prime number
     #[arg(long, requires = "prime check")]
@@ -133,7 +133,7 @@ impl FieldArg {
         R: Fn(Reals),
         M: Fn(IntegersModuloP),
     {
-        match (self.real, self.zmod) {
+        match (self.reals, self.modulo) {
             (false, Some(p)) => {
                 if self.disable_prime_check {
                     modulo(IntegersModuloP::new_unchecked(p))
@@ -159,17 +159,17 @@ struct EuclideanRingArg {
 
     /// Interpret polynomials over real numbers
     #[arg(short = 'R', long, group = "euclidean ring")]
-    poly_real: bool,
+    poly_reals: bool,
 
     /// Interpret polynomials over integers modulo p (where p is prime)
     #[arg(
-        short = 'P',
+        short = 'M',
         long,
         value_name = "P",
         group = "euclidean ring",
         group = "prime check"
     )]
-    poly_zmod: Option<usize>,
+    poly_modulo: Option<usize>,
 
     /// Don't check if p is actually a prime number
     #[arg(long, requires = "prime check")]
@@ -183,7 +183,7 @@ impl EuclideanRingArg {
         R: Fn(Reals),
         M: Fn(IntegersModuloP),
     {
-        match (self.integers, self.poly_real, self.poly_zmod) {
+        match (self.integers, self.poly_reals, self.poly_modulo) {
             (true, false, None) => integers(Integers),
             (false, true, None) => reals(Reals),
             (false, false, Some(p)) => {
@@ -296,7 +296,7 @@ fn gcd_int(lhs: &str, rhs: &str) {
             .exit();
     };
 
-    println!("{gcd} with s = {s} and t = {t}");
+    println!("{gcd}\nWITH s = {s} AND t = {t}");
 }
 
 fn gcd_poly<F>(field: F, lhs: &str, rhs: &str)
@@ -314,7 +314,7 @@ where
             .exit();
     };
 
-    println!("{gcd} with s = {s} and t = {t}");
+    println!("{gcd}\nWITH s = {s} AND t = {t}");
 }
 
 fn parse_int(input: &str) -> isize {
