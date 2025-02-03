@@ -1,15 +1,8 @@
 # PolyMoly
 Library and tool for polynomials over various rings.
 
-Work in progress.
-
-## Supported rings
-- `R`, the real numbers
-- `Z`, the integers
-- `Z/nZ`, the ring of integers modulo `n` (field if `n` is prime)
-- `R[x]`, the polynomial ring over another ring `R`
-
-## Command line tool
-```sh
-$ polymoly --help
-```
+The project consists of three parts:
+- The Rust library crate implements the core logic of algebraic rings and calculating with polynomials.
+Documentation is available [here](https://rbuurman.de/projekte/rustdoc/polymoly).
+- A [command line tool](./cli/)
+- A [webapp](./webapp/) that runs [here](https://rbuurman.de/projekte/polymoly)
