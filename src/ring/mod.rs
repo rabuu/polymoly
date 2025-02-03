@@ -1,4 +1,4 @@
-//! Abstract algebraic rings
+//! Algebraic (commutative) rings
 
 mod integers;
 mod integers_modulo;

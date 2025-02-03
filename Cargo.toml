@@ -3,7 +3,7 @@ name = "polymoly"
 version = "0.1.0"
 authors = ["Rasmus Buurman <rasmus@rbuurman.de>"]
 edition = "2021"
-description = "Library and tool for polynomials over abstract rings"
+description = "Library and tool for polynomials over various rings"
 readme = "README.md"
 license = "MIT"
 

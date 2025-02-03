@@ -1,5 +1,5 @@
 //! # PolyMoly
-//! A library for polynomials over abstract rings.
+//! A library for polynomials over various rings.
 //!
 //! ## Example usage
 //! ```
