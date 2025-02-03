@@ -22,6 +22,8 @@ fn App() -> impl IntoView {
     let (lhs, set_lhs) = signal(String::new());
     let (rhs, set_rhs) = signal(String::new());
 
+    let show_output_area = move || !lhs.get().is_empty() && !rhs.get().is_empty();
+
     let (normal_ring, set_normal_ring) = signal(String::from("reals"));
     let (field_ring, set_field_ring) = signal(String::from("reals"));
     let (euclidean_ring, set_euclidean_ring) = signal(String::from("reals"));
@@ -140,19 +142,21 @@ fn App() -> impl IntoView {
         //     "Calculate"
         // </button>
 
-        <p class="output-area">
-            { move || {
-                calculate(
-                    op.get(),
-                    lhs.get(),
-                    rhs.get(),
-                    normal_ring.get(),
-                    field_ring.get(),
-                    euclidean_ring.get(),
-                    n.get()
-                )
-            }}
-        </p>
+        <Show when=show_output_area>
+            <p class="output-area">
+                { move || {
+                    calculate(
+                        op.get(),
+                        lhs.get(),
+                        rhs.get(),
+                        normal_ring.get(),
+                        field_ring.get(),
+                        euclidean_ring.get(),
+                        n.get()
+                    )
+                }}
+            </p>
+        </Show>
 
     }
 }
