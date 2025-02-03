@@ -136,6 +136,9 @@ impl<F: Field> Polynomial<F> {
             r -= t * rhs.clone();
         }
 
+        q.cut_trailing_zeros();
+        r.cut_trailing_zeros();
+
         Some((q, r))
     }
 }
