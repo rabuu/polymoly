@@ -90,7 +90,7 @@ h4 {
 }
 
 .input-row .op-symbol {
-	padding: 0.3em;
+	width: 2em;
 }
 
 .input-row .select-ring {
