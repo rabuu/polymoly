@@ -1,7 +1,6 @@
 mod mathml;
 mod operation;
 
-use leptos::html::P;
 use leptos::prelude::*;
 
 use polymoly::polynomial::display::DisplayRing;
@@ -292,7 +291,8 @@ fn calculate(
                     <br />
                     "WITH s = " { s }
                     " AND t = " { t }
-                }.into_any()
+                }
+                .into_any()
             }
             "reals" => {
                 let (lhs, rhs) = match parse(Reals, &lhs, &rhs) {
@@ -300,7 +300,9 @@ fn calculate(
                     Err(err) => return view! { { err } }.into_any(),
                 };
 
-                let Some((gcd, s, t)) = polymoly::euclid::extended_euclidean(PolynomialRing::new(Reals), lhs, rhs) else {
+                let Some((gcd, s, t)) =
+                    polymoly::euclid::extended_euclidean(PolynomialRing::new(Reals), lhs, rhs)
+                else {
                     return view! { "Error: One side must be non-zero" }.into_any();
                 };
 
@@ -309,7 +311,8 @@ fn calculate(
                     <br />
                     "WITH s = " { mathml::render_polynomial(s) }
                     " AND t = " { mathml::render_polynomial(t) }
-                }.into_any()
+                }
+                .into_any()
             }
             "modulo" => {
                 let Some(modulo) = IntegersModuloP::new(n) else {
@@ -321,7 +324,9 @@ fn calculate(
                     Err(err) => return view! { { err } }.into_any(),
                 };
 
-                let Some((gcd, s, t)) = polymoly::euclid::extended_euclidean(PolynomialRing::new(modulo), lhs, rhs) else {
+                let Some((gcd, s, t)) =
+                    polymoly::euclid::extended_euclidean(PolynomialRing::new(modulo), lhs, rhs)
+                else {
                     return view! { "Error: One side must be non-zero" }.into_any();
                 };
 
@@ -330,9 +335,10 @@ fn calculate(
                     <br />
                     "WITH s = " { mathml::render_polynomial(s) }
                     " AND t = " { mathml::render_polynomial(t) }
-                }.into_any()
+                }
+                .into_any()
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         },
     }
 }
