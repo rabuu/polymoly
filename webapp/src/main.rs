@@ -24,7 +24,7 @@ fn App() -> impl IntoView {
 
     let (normal_ring, set_normal_ring) = signal(String::from("reals"));
     let (field_ring, set_field_ring) = signal(String::from("reals"));
-    let (euclidean_ring, set_euclidean_ring) = signal(String::from("integers"));
+    let (euclidean_ring, set_euclidean_ring) = signal(String::from("reals"));
 
     let (n, set_n) = signal(2_usize);
     let do_select_n = move || match op.get().operand_ring_type() {
@@ -34,92 +34,125 @@ fn App() -> impl IntoView {
     };
 
     view! {
-    <div>
-        <input type="radio" name="operation" value="add" id="op:add" on:input:target=move |ev| set_op.set(ev.target().value().into()) checked />
-        <label for="op:add">Add</label>
-        <input type="radio" name="operation" value="sub" id="op:sub" on:input:target=move |ev| set_op.set(ev.target().value().into()) />
-        <label for="op:add">Subtract</label>
-        <input type="radio" name="operation" value="mul" id="op:mul" on:input:target=move |ev| set_op.set(ev.target().value().into()) />
-        <label for="op:mul">Multiply</label>
-        <input type="radio" name="operation" value="div" id="op:div" on:input:target=move |ev| set_op.set(ev.target().value().into()) />
-        <label for="op:mul">Divide</label>
-        <input type="radio" name="operation" value="gcd" id="op:gcd" on:input:target=move |ev| set_op.set(ev.target().value().into()) />
-        <label for="op:mul">GCD</label>
-    </div>
+        <div class="radio-select">
+            <label class="radio-option">
+                <input type="radio" name="operation" value="add"
+                    on:input:target=move |ev| set_op.set(ev.target().value().into()) checked />
+                <span class="radio-label">Add</span>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="operation" value="sub"
+                    on:input:target=move |ev| set_op.set(ev.target().value().into()) />
+                <span class="radio-label">Subtract</span>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="operation" value="mul"
+                    on:input:target=move |ev| set_op.set(ev.target().value().into()) />
+                <span class="radio-label">Multiply</span>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="operation" value="div"
+                    on:input:target=move |ev| set_op.set(ev.target().value().into()) />
+                <span class="radio-label">Divide</span>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="operation" value="gcd"
+                    on:input:target=move |ev| set_op.set(ev.target().value().into()) />
+                <span class="radio-label">GCD</span>
+            </label>
+        </div>
 
-    <input type="text"
-        prop:placeholder="Left-hand side"
-        bind:value=(lhs, set_lhs)
-    />
-    <input type="text"
-        prop:placeholder="Right-hand side"
-        bind:value=(rhs, set_rhs)
-    />
+        <div class="input-row">
+            <input type="text"
+                prop:placeholder="Left-hand side"
+                bind:value=(lhs, set_lhs)
+            />
 
-    <Show when=move || op.get().operand_ring_type() == OperandRingType::Normal>
-        <select
-            on:change:target=move |ev| set_normal_ring.set(ev.target().value())
-            prop:value=move || normal_ring.get()
-        >
-            <option value="reals">{ mathml::ring_string(mathml::LETTER_R, true) }</option>
-            <option value="integers">{ mathml::ring_string(mathml::LETTER_Z, true) }</option>
-            <option value="modulo">{ mathml::ring_string(mathml::integers_modulo_string("n"), true) }</option>
-        </select>
-    </Show>
-
-    <Show when=move || op.get().operand_ring_type() == OperandRingType::Field>
-        <select
-            on:change:target=move |ev| set_field_ring.set(ev.target().value())
-            prop:value=move || field_ring.get()
-        >
-            <option value="reals">{ mathml::ring_string(mathml::LETTER_R, true) }</option>
-            <option value="modulo">{ mathml::ring_string(mathml::integers_modulo_string("p"), true) }</option>
-        </select>
-    </Show>
-
-    <Show when=move || op.get().operand_ring_type() == OperandRingType::Euclidean>
-        <select
-            on:change:target=move |ev| set_euclidean_ring.set(ev.target().value())
-            prop:value=move || euclidean_ring.get()
-        >
-            <option value="integers">{ mathml::ring_string(mathml::LETTER_Z, false) }</option>
-            <option value="reals">{ mathml::ring_string(mathml::LETTER_R, true) }</option>
-            <option value="modulo">{ mathml::ring_string(mathml::integers_modulo_string("p"), true) }</option>
-        </select>
-    </Show>
-
-    <Show when=do_select_n >
-        <input type="number" min="2"
-            prop:placeholder=move || {
-                match op.get().operand_ring_type() {
-                    OperandRingType::Normal => "n",
-                    OperandRingType::Field | OperandRingType::Euclidean => "p",
+            <span class="op-symbol">
+                {
+                    move || match op.get() {
+                        Operation::Add => mathml::operator_plus().into_any(),
+                        Operation::Sub => mathml::operator_minus().into_any(),
+                        Operation::Mul => mathml::operator_times().into_any(),
+                        Operation::Div => mathml::operator_divide().into_any(),
+                        _ => ().into_any(),
+                    }
                 }
-            }
-            on:input:target=move |ev| if let Ok(n_int) = ev.target().value().parse() {
-                set_n.set(n_int);
-            }
-            prop:value=n.get().to_string()
-        />
-    </Show>
+            </span>
 
-    // <button on:click=move |_| { }>
-    //     "Calculate"
-    // </button>
+            <input type="text"
+                prop:placeholder="Right-hand side"
+                bind:value=(rhs, set_rhs)
+            />
 
-    <p>
-        { move || {
-            calculate(
-                op.get(),
-                lhs.get(),
-                rhs.get(),
-                normal_ring.get(),
-                field_ring.get(),
-                euclidean_ring.get(),
-                n.get()
-            )
-        }}
-    </p>
+            <Show when=move || op.get().operand_ring_type() == OperandRingType::Normal>
+                <select
+                    class="select-ring"
+                    on:change:target=move |ev| set_normal_ring.set(ev.target().value())
+                    prop:value=move || normal_ring.get()
+                >
+                    <option value="reals">{ mathml::ring_string(mathml::LETTER_R, true) }</option>
+                    <option value="integers">{ mathml::ring_string(mathml::LETTER_Z, true) }</option>
+                    <option value="modulo">{ mathml::ring_string(mathml::integers_modulo_string("n"), true) }</option>
+                </select>
+            </Show>
+
+            <Show when=move || op.get().operand_ring_type() == OperandRingType::Field>
+                <select
+                    class="select-ring"
+                    on:change:target=move |ev| set_field_ring.set(ev.target().value())
+                    prop:value=move || field_ring.get()
+                >
+                    <option value="reals">{ mathml::ring_string(mathml::LETTER_R, true) }</option>
+                    <option value="modulo">{ mathml::ring_string(mathml::integers_modulo_string("p"), true) }</option>
+                </select>
+            </Show>
+
+            <Show when=move || op.get().operand_ring_type() == OperandRingType::Euclidean>
+                <select
+                    class="select-ring"
+                    on:change:target=move |ev| set_euclidean_ring.set(ev.target().value())
+                    prop:value=move || euclidean_ring.get()
+                >
+                    <option value="reals">{ mathml::ring_string(mathml::LETTER_R, true) }</option>
+                    <option value="modulo">{ mathml::ring_string(mathml::integers_modulo_string("p"), true) }</option>
+                    <option value="integers">{ mathml::ring_string(mathml::LETTER_Z, false) }</option>
+                </select>
+            </Show>
+
+            <Show when=do_select_n >
+                <input type="number" min="2"
+                    prop:placeholder=move || {
+                        match op.get().operand_ring_type() {
+                            OperandRingType::Normal => "n",
+                            OperandRingType::Field | OperandRingType::Euclidean => "p",
+                        }
+                    }
+                    on:input:target=move |ev| if let Ok(n_int) = ev.target().value().parse() {
+                        set_n.set(n_int);
+                    }
+                    prop:value=n.get().to_string()
+                />
+            </Show>
+        </div>
+
+        // <button on:click=move |_| { }>
+        //     "Calculate"
+        // </button>
+
+        <p class="output-area">
+            { move || {
+                calculate(
+                    op.get(),
+                    lhs.get(),
+                    rhs.get(),
+                    normal_ring.get(),
+                    field_ring.get(),
+                    euclidean_ring.get(),
+                    n.get()
+                )
+            }}
+        </p>
 
     }
 }

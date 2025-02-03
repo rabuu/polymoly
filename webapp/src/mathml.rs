@@ -50,3 +50,19 @@ pub fn ring_string(s: impl Into<String>, is_polynomial: bool) -> impl IntoView {
         </math>
     }
 }
+
+pub fn operator_plus() -> impl IntoView {
+    view! { <math> <mo>"+"</mo> </math> }
+}
+
+pub fn operator_minus() -> impl IntoView {
+    view! { <math> <mo>"-"</mo> </math> }
+}
+
+pub fn operator_times() -> impl IntoView {
+    view! { <math> <mo>"×"</mo> </math> }
+}
+
+pub fn operator_divide() -> impl IntoView {
+    view! { <math> <mo>"÷"</mo> </math> }
+}

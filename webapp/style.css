@@ -1,0 +1,93 @@
+:root {
+	--bg: #ffffff;
+	--gray: #eeeeee;
+	--light-gray: #fafafa;
+	--border-radius: 0.3em;
+}
+
+html {
+	margin: 0;
+	font-family: Helvetica sans-serif;
+}
+
+body {
+	text-align: center;
+	background-color: var(--bg);
+}
+
+.radio-select {
+	margin: auto;
+	width: 50%;
+	display: flex;
+	position: relative;
+	flex-wrap: wrap;
+	border-radius: var(--border-radius);
+	background-color: var(--gray);
+	box-sizing: border-box;
+	box-shadow: 0 0 0px 1px rgba(0, 0, 0, 0.06);
+	padding: 0.25rem;
+}
+
+.radio-select .radio-option {
+	flex: 1 1 auto;
+	text-align: center;
+}
+
+.radio-select .radio-option input {
+	display: none;
+}
+
+.radio-select .radio-option .radio-label {
+	display: flex;
+	cursor: pointer;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--border-radius);
+	border: none;
+	padding: .5rem 0;
+	color: rgba(51, 65, 85, 1);
+	transition: all .15s ease-in-out;
+}
+
+.radio-select .radio-option input:checked + .radio-label {
+	background-color: var(--light-gray);
+	font-weight: 600;
+}
+
+.input-row {
+	margin: auto;
+	padding: 2em;
+	width: 70%;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+}
+
+.input-row input[type=text] {
+	width: 25%;
+	padding: 0.5em;
+}
+
+.input-row .op-symbol {
+	padding: 0.3em;
+}
+
+.input-row .select-ring {
+	margin-left: 2em;
+	padding: 0.5em;
+}
+
+.input-row input[type=number] {
+	margin-left: 0.7em;
+	width: 4rem;
+}
+
+.output-area {
+	margin: auto;
+	width: 80%;
+	background: var(--light-gray);
+	padding: 2em;
+	border-radius: var(--border-radius);
+	border: solid black 0.1em;
+}
