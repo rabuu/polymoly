@@ -186,23 +186,9 @@ impl<R: Ring> ops::Neg for Polynomial<R> {
 impl<R: Ring> ops::Sub<Polynomial<R>> for Polynomial<R> {
     type Output = Polynomial<R>;
 
-    fn sub(self, rhs: Polynomial<R>) -> Self::Output {
-        let ring = self.ring;
-
-        let (longer, shorter) = if self.elems.len() > rhs.elems.len() {
-            (self, rhs)
-        } else {
-            (rhs, self)
-        };
-
-        let mut out = longer.clone();
-
-        for (i, elem) in shorter.elems.into_iter().enumerate() {
-            out.add_elem_unsafe(ring.neg(elem), i);
-        }
-
-        out.cut_trailing_zeros();
-        out
+    fn sub(mut self, rhs: Polynomial<R>) -> Self::Output {
+        self -= rhs;
+        self
     }
 }
 
