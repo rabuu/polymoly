@@ -28,7 +28,7 @@ The `polymoly` binary provides a simple calculator interface as CLI tool.
 See `polymoly --help` for all operations and `polymoly <OP> --help` their options.
 
 ### Example usage
-```
+```console
 $ polymoly add '3x + 4x^2' '0.5 + x^2'
 4x^2 + 3x + 0.5
 
