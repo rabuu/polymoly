@@ -22,8 +22,7 @@ enum Operation {
         #[command(flatten)]
         ring: RingArg,
 
-        /// At least two polynomials
-        #[arg(num_args = 2..)]
+        /// The polynomials to sum
         poly: Vec<String>,
     },
 
@@ -44,8 +43,7 @@ enum Operation {
         #[command(flatten)]
         ring: RingArg,
 
-        /// At least two polynomials
-        #[arg(num_args = 2..)]
+        /// The polynomials to multiply
         poly: Vec<String>,
     },
 
@@ -236,8 +234,7 @@ where
     let result = polynomials
         .iter()
         .map(|s| parse_polynomial(ring, s))
-        .reduce(|acc, p| acc + p)
-        .expect("at least two polynomials");
+        .fold(Polynomial::zero(ring), std::ops::Add::add);
 
     println!("{result}");
 }
@@ -261,8 +258,7 @@ where
     let result = polynomials
         .iter()
         .map(|s| parse_polynomial(ring, s))
-        .reduce(|acc, p| acc * p)
-        .expect("at least two polynomials");
+        .fold(Polynomial::constant(ring, ring.one()), std::ops::Mul::mul);
 
     println!("{result}");
 }
